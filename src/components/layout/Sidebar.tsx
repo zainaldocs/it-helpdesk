@@ -7,18 +7,19 @@ import {
   LayoutDashboard, 
   Ticket, 
   PlusCircle, 
-  Users, 
-  Settings, 
-  LogOut 
+  LogOut,
+  X
 } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
 
 interface SidebarProps {
   role: 'admin' | 'technician' | 'end_user'
   fullName: string
+  isOpen: boolean
+  onClose: () => void
 }
 
-export default function Sidebar({ role, fullName }: SidebarProps) {
+export default function Sidebar({ role, fullName, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
 
   const getMenuLinks = () => {
@@ -96,31 +97,45 @@ export default function Sidebar({ role, fullName }: SidebarProps) {
   const getRoleColor = () => {
     switch (role) {
       case 'admin':
-        return 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+        return 'bg-rose-50 text-rose-700 border-rose-200'
       case 'technician':
-        return 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+        return 'bg-blue-50 text-blue-700 border-blue-200'
       default:
-        return 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+        return 'bg-slate-100 text-slate-700 border-slate-200'
     }
   }
 
   return (
-    <aside className="w-64 border-r border-slate-900 bg-slate-950/80 backdrop-blur-xl flex flex-col justify-between h-screen sticky top-0">
+    <aside 
+      className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between h-screen transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex
+        ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+      `}
+    >
       {/* Brand Header */}
       <div>
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-900/60">
-          <div className="h-9 w-9 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/10">
-            <Terminal className="h-4.5 w-4.5 text-white" />
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-tr from-purple-600 to-fuchsia-600 flex items-center justify-center shadow-md shadow-purple-500/20">
+              <Terminal className="h-4.5 w-4.5 text-white" />
+            </div>
+            <span className="text-lg font-bold text-slate-900 tracking-tight">IT Helpdesk</span>
           </div>
-          <span className="text-lg font-bold text-white tracking-tight">IT Helpdesk</span>
+          
+          {/* Close button for mobile only */}
+          <button 
+            onClick={onClose}
+            className="p-2 -mr-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg lg:hidden transition"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         {/* User Card */}
-        <div className="px-4 py-4.5 border-b border-slate-900/60">
-          <div className="bg-slate-900/40 border border-slate-900 rounded-xl p-3.5 flex flex-col gap-1.5">
-            <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Sedang Aktif</span>
-            <span className="text-sm font-semibold text-white truncate max-w-xs">{fullName}</span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit ${getRoleColor()}`}>
+        <div className="px-4 py-4.5 border-b border-slate-100">
+          <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 flex flex-col gap-1.5 shadow-sm">
+            <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">Sedang Aktif</span>
+            <span className="text-sm font-semibold text-slate-900 truncate max-w-xs">{fullName}</span>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit border ${getRoleColor()}`}>
               {getRoleLabel()}
             </span>
           </div>
@@ -136,11 +151,11 @@ export default function Sidebar({ role, fullName }: SidebarProps) {
                 href={item.href}
                 className={`flex items-center gap-3.5 px-4.5 py-3 rounded-xl text-sm font-medium transition duration-200 ${
                   item.active
-                    ? 'bg-blue-600/10 border border-blue-500/20 text-blue-400'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent'
+                    ? 'bg-purple-50 border border-purple-100 text-purple-700 shadow-sm'
+                    : 'text-slate-500 hover:text-purple-700 hover:bg-slate-50 border border-transparent'
                 }`}
               >
-                <Icon className="h-4.5 w-4.5" />
+                <Icon className={`h-4.5 w-4.5 ${item.active ? 'text-purple-600' : 'text-slate-400'}`} />
                 {item.label}
               </Link>
             )
@@ -149,10 +164,10 @@ export default function Sidebar({ role, fullName }: SidebarProps) {
       </div>
 
       {/* Logout Footer */}
-      <div className="p-4 border-t border-slate-900/60">
+      <div className="p-4 border-t border-slate-100">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3.5 w-full px-4.5 py-3 rounded-xl text-sm font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-950/20 border border-transparent hover:border-rose-950/30 transition duration-200 cursor-pointer"
+          className="flex items-center gap-3.5 w-full px-4.5 py-3 rounded-xl text-sm font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition duration-200 cursor-pointer"
         >
           <LogOut className="h-4.5 w-4.5" />
           Keluar (Logout)
