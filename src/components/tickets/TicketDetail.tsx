@@ -116,26 +116,26 @@ export default function TicketDetail({
   const getUrgencyBadge = (urgency: string) => {
     switch (urgency) {
       case 'critical':
-        return 'bg-red-500/10 text-red-400 border border-red-500/20'
+        return 'bg-red-50 text-red-700 border border-red-200'
       case 'high':
-        return 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+        return 'bg-orange-50 text-orange-700 border border-orange-200'
       case 'medium':
-        return 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+        return 'bg-yellow-50 text-yellow-700 border border-yellow-200'
       default:
-        return 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+        return 'bg-purple-50 text-purple-700 border border-purple-200'
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'open':
-        return 'bg-sky-500/10 text-sky-400 border border-sky-500/20'
+        return 'bg-sky-50 text-sky-700 border border-sky-200'
       case 'in_progress':
-        return 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+        return 'bg-amber-50 text-amber-700 border border-amber-200'
       case 'resolved':
-        return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+        return 'bg-emerald-50 text-emerald-700 border border-emerald-200'
       default:
-        return 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+        return 'bg-slate-100 text-slate-700 border border-slate-200'
     }
   }
 
@@ -150,15 +150,15 @@ export default function TicketDetail({
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
       {/* Detail Tiket Utama (Kiri/Tengah) */}
       <div className="lg:col-span-2 space-y-6">
-        <div className="bg-slate-900/40 border border-slate-900 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-8 space-y-6 shadow-sm">
           {/* Header */}
-          <div className="flex flex-wrap justify-between items-start gap-4 pb-6 border-b border-slate-900/60">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs font-mono font-bold text-slate-500">{ticket.ticket_number}</span>
+          <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 pb-6 border-b border-slate-100">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">{ticket.ticket_number}</span>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${getUrgencyBadge(ticket.urgency)}`}>
                   {ticket.urgency.toUpperCase()}
                 </span>
@@ -166,31 +166,31 @@ export default function TicketDetail({
                   {getStatusLabel(ticketStatus)}
                 </span>
               </div>
-              <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight leading-tight">
+              <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight">
                 {ticket.title}
               </h1>
             </div>
           </div>
 
           {/* Metadata Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4.5 p-4 rounded-xl bg-slate-950/40 border border-slate-900 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs shadow-inner">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-slate-900 rounded-lg text-slate-400">
+              <div className="p-2 bg-white rounded-lg border border-slate-100 text-slate-500 shadow-sm">
                 <Tag className="h-4 w-4" />
               </div>
               <div>
-                <span className="text-slate-500 block">Kategori</span>
-                <span className="font-semibold text-slate-200">{ticket.category}</span>
+                <span className="text-slate-500 font-medium block">Kategori</span>
+                <span className="font-bold text-slate-900">{ticket.category}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-slate-900 rounded-lg text-slate-400">
+              <div className="p-2 bg-white rounded-lg border border-slate-100 text-slate-500 shadow-sm">
                 <Calendar className="h-4 w-4" />
               </div>
               <div>
-                <span className="text-slate-500 block">Tanggal Dibuat</span>
-                <span className="font-semibold text-slate-200">
+                <span className="text-slate-500 font-medium block">Tanggal Dibuat</span>
+                <span className="font-bold text-slate-900">
                   {new Date(ticket.created_at).toLocaleDateString('id-ID', {
                     day: 'numeric',
                     month: 'short',
@@ -203,12 +203,12 @@ export default function TicketDetail({
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-slate-900 rounded-lg text-slate-400">
+              <div className="p-2 bg-white rounded-lg border border-slate-100 text-slate-500 shadow-sm">
                 <User className="h-4 w-4" />
               </div>
               <div>
-                <span className="text-slate-500 block">Pelapor (End-User)</span>
-                <span className="font-semibold text-slate-200 truncate block max-w-[150px]" title={ticket.creator?.email}>
+                <span className="text-slate-500 font-medium block">Pelapor (End-User)</span>
+                <span className="font-bold text-slate-900 truncate block max-w-[150px]" title={ticket.creator?.email}>
                   {ticket.creator?.full_name}
                 </span>
               </div>
@@ -217,8 +217,8 @@ export default function TicketDetail({
 
           {/* Description */}
           <div className="space-y-2">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Deskripsi Masalah</h3>
-            <div className="p-5 rounded-xl bg-slate-950/20 border border-slate-900 text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Deskripsi Masalah</h3>
+            <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">
               {ticket.description}
             </div>
           </div>
@@ -226,12 +226,12 @@ export default function TicketDetail({
           {/* Attachment */}
           {ticket.attachment_url && (
             <div className="space-y-2">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Lampiran Pendukung</h3>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lampiran Pendukung</h3>
               <a 
                 href={ticket.attachment_url} 
                 target="_blank" 
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 p-3 bg-slate-950/40 border border-slate-800 rounded-xl text-xs font-semibold text-blue-400 hover:text-blue-300 hover:border-slate-700 transition"
+                className="inline-flex items-center gap-2 p-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-purple-600 hover:text-purple-700 hover:bg-purple-50 hover:border-purple-200 transition shadow-sm w-full sm:w-auto justify-center"
               >
                 <span>Lihat Lampiran</span>
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -241,16 +241,16 @@ export default function TicketDetail({
         </div>
 
         {/* Notes/Discussions Section */}
-        <div className="bg-slate-900/40 border border-slate-900 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-900/60 pb-4">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-blue-400" />
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-8 space-y-6 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <MessageSquare className="h-4.5 w-4.5 text-purple-500" />
               Catatan & Diskusi ({notes.length})
             </h3>
           </div>
 
           {/* Notes list */}
-          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
             {notes.length > 0 ? (
               notes.map((note) => {
                 const isInternal = note.is_internal
@@ -258,20 +258,23 @@ export default function TicketDetail({
                 return (
                   <div 
                     key={note.id} 
-                    className={`p-4.5 rounded-xl border text-sm transition ${
+                    className={`p-4.5 rounded-xl border text-sm transition shadow-sm ${
                       isInternal 
-                        ? 'bg-amber-950/15 border-amber-900/30 text-amber-300' 
-                        : 'bg-slate-950/40 border-slate-900 text-slate-300'
+                        ? 'bg-amber-50 border-amber-200 text-amber-900' 
+                        : 'bg-white border-slate-200 text-slate-700'
                     }`}
                   >
-                    <div className="flex justify-between items-start gap-2 mb-2.5">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
                       <div className="flex items-center gap-2 text-xs">
-                        <span className="font-bold text-slate-200">{note.user?.full_name}</span>
-                        <span className="text-[10px] text-slate-500">({note.user?.role === 'admin' ? 'Admin' : note.user?.role === 'technician' ? 'IT Support' : 'Karyawan'})</span>
+                        <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 border border-slate-200">
+                          {note.user?.full_name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-bold text-slate-900">{note.user?.full_name}</span>
+                        <span className="text-[10px] text-slate-500 font-medium">({note.user?.role === 'admin' ? 'Admin' : note.user?.role === 'technician' ? 'IT Support' : 'Karyawan'})</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                      <div className="flex items-center gap-2 text-[10px] text-slate-500 font-medium ml-8 sm:ml-0">
                         {isInternal && (
-                          <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <span className="bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
                             <Lock className="h-2.5 w-2.5" />
                             Internal Notes
                           </span>
@@ -286,21 +289,21 @@ export default function TicketDetail({
                         </span>
                       </div>
                     </div>
-                    <p className="leading-relaxed text-xs md:text-sm whitespace-pre-wrap">{note.content}</p>
+                    <p className="leading-relaxed text-xs md:text-sm whitespace-pre-wrap ml-8 sm:ml-0 font-medium">{note.content}</p>
                   </div>
                 )
               })
             ) : (
-              <div className="p-8 text-center text-slate-500 text-xs italic">
+              <div className="p-8 text-center text-slate-500 text-xs font-medium italic bg-slate-50 rounded-xl border border-slate-100">
                 Belum ada catatan atau tanggapan untuk tiket ini.
               </div>
             )}
           </div>
 
           {/* Note Form */}
-          <form onSubmit={handleNoteSubmit} className="space-y-4 pt-4 border-t border-slate-900/60">
+          <form onSubmit={handleNoteSubmit} className="space-y-4 pt-5 border-t border-slate-100">
             <div>
-              <label htmlFor="noteContent" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              <label htmlFor="noteContent" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                 Tambahkan Tanggapan / Catatan
               </label>
               <textarea
@@ -310,22 +313,22 @@ export default function TicketDetail({
                 placeholder="Ketik tanggapan Anda di sini..."
                 value={noteContent}
                 onChange={(e) => setNoteContent(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition duration-200 resize-none"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition duration-200 resize-none shadow-inner"
               />
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               {/* Internal Note Checkbox (Staff Only) */}
               {isStaff ? (
-                <label className="flex items-center gap-2.5 text-xs text-amber-400 font-semibold cursor-pointer">
+                <label className="flex items-center gap-2.5 text-xs text-amber-600 font-bold cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isInternalNote}
                     onChange={(e) => setIsInternalNote(e.target.checked)}
-                    className="h-4 w-4 bg-slate-950 border border-slate-800 rounded accent-amber-500 focus:outline-none focus:ring-0"
+                    className="h-4.5 w-4.5 bg-white border border-slate-300 rounded accent-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
                   <Lock className="h-3.5 w-3.5" />
-                  Jadikan sebagai Catatan Internal (Hanya dilihat Tim IT)
+                  Jadikan sebagai Catatan Internal (Tim IT)
                 </label>
               ) : (
                 <div />
@@ -334,16 +337,16 @@ export default function TicketDetail({
               <button
                 type="submit"
                 disabled={isNoteSubmitting}
-                className="px-5 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition duration-200 flex items-center justify-center gap-1.5 cursor-pointer"
+                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-purple-500/20 w-full sm:w-auto"
               >
                 {isNoteSubmitting ? (
                   <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Mengirim...
                   </>
                 ) : (
                   <>
-                    <Send className="h-3.5 w-3.5" />
+                    <Send className="h-4 w-4" />
                     Kirim Catatan
                   </>
                 )}
@@ -357,16 +360,16 @@ export default function TicketDetail({
       <div className="space-y-6">
         {/* Action Panel for Staff */}
         {isStaff ? (
-          <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <FileCheck className="h-4.5 w-4.5 text-blue-400" />
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5 shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-slate-100">
+              <FileCheck className="h-4.5 w-4.5 text-purple-500" />
               Kontrol Teknisi & Admin
             </h3>
 
             {/* Change Status */}
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">Perbarui Status Tiket</span>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {[
                   { value: 'open', label: 'Open' },
                   { value: 'in_progress', label: 'In Progress' },
@@ -377,10 +380,10 @@ export default function TicketDetail({
                     key={st.value}
                     onClick={() => handleStatusChange(st.value as any)}
                     disabled={isStatusUpdating}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer flex-1 text-center ${
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer text-center ${
                       ticketStatus === st.value
-                        ? getStatusBadge(st.value)
-                        : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:text-slate-300'
+                        ? getStatusBadge(st.value) + ' shadow-sm'
+                        : 'border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                     }`}
                   >
                     {st.label}
@@ -390,12 +393,12 @@ export default function TicketDetail({
             </div>
 
             {/* Assign Ticket */}
-            <div className="space-y-2 pt-2 border-t border-slate-900/60">
+            <div className="space-y-2 pt-4 border-t border-slate-100">
               <label htmlFor="assign" className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
                 Tugaskan Teknisi (Assignee)
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
                   <UserCheck className="h-4 w-4" />
                 </span>
                 <select
@@ -403,7 +406,7 @@ export default function TicketDetail({
                   value={assignedTo}
                   disabled={isAssigning}
                   onChange={(e) => handleAssignChange(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition cursor-pointer"
+                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition cursor-pointer shadow-inner"
                 >
                   <option value="">-- Belum Ditugaskan --</option>
                   {technicians.map((tech) => (
@@ -416,32 +419,32 @@ export default function TicketDetail({
             </div>
           </div>
         ) : (
-          <div className="bg-slate-900/20 border border-slate-900 rounded-2xl p-6 space-y-4 shadow-xl">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <AlertTriangle className="h-4.5 w-4.5 text-blue-400" />
+          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 space-y-4 shadow-sm">
+            <h3 className="text-sm font-black text-blue-800 uppercase tracking-wider flex items-center gap-2">
+              <AlertTriangle className="h-4.5 w-4.5 text-blue-500" />
               Catatan Bantuan
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-blue-700 leading-relaxed font-medium">
               Anda sebagai pelapor (karyawan) hanya dapat melihat tanggapan publik. Status tiket akan diperbarui oleh tim IT Support setelah permasalahan Anda ditangani.
             </p>
           </div>
         )}
 
         {/* Current Assigned Staff Summary */}
-        <div className="bg-slate-900/20 border border-slate-900 rounded-2xl p-6 space-y-3.5 shadow-xl text-xs">
-          <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">Detail Petugas IT</span>
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm text-xs">
+          <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block border-b border-slate-100 pb-2">Detail Petugas IT</span>
           {ticket.assignee ? (
-            <div className="flex items-center gap-3 bg-slate-950/40 p-3 rounded-xl border border-slate-900">
-              <div className="h-8 w-8 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+            <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-sm">
+              <div className="h-9 w-9 rounded-full bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-600">
                 <User className="h-4.5 w-4.5" />
               </div>
               <div>
-                <span className="font-semibold text-slate-200 block">{ticket.assignee.full_name}</span>
-                <span className="text-[10px] text-slate-500">{ticket.assignee.email}</span>
+                <span className="font-bold text-slate-900 block">{ticket.assignee.full_name}</span>
+                <span className="text-[10px] font-medium text-slate-500">{ticket.assignee.email}</span>
               </div>
             </div>
           ) : (
-            <div className="p-3 bg-slate-950/40 text-center rounded-xl border border-slate-900 text-slate-500 italic">
+            <div className="p-4 bg-slate-50 text-center rounded-xl border border-slate-100 text-slate-500 font-medium italic">
               Tiket aduan belum ditugaskan ke petugas IT manapun.
             </div>
           )}
