@@ -139,7 +139,12 @@ DECLARE
     prefix TEXT := 'TCK-' || to_char(NOW(), 'YYYYMM') || '-';
     seq_val INT;
 BEGIN
-    SELECT COUNT(*) + 1 INTO seq_val FROM tickets WHERE ticket_number LIKE prefix || '%';
+    -- Mengambil angka urut tertinggi pada bulan berjalan untuk menghindari duplikasi saat ada tiket yang dihapus
+    SELECT COALESCE(MAX(SUBSTRING(ticket_number FROM 12 FOR 4)::INT), 0) + 1 
+    INTO seq_val 
+    FROM tickets 
+    WHERE ticket_number LIKE prefix || '%';
+    
     NEW.ticket_number := prefix || LPAD(seq_val::TEXT, 4, '0');
     RETURN NEW;
 END;
