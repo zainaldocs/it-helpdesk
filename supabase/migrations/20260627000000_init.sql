@@ -148,7 +148,7 @@ BEGIN
     NEW.ticket_number := prefix || LPAD(seq_val::TEXT, 4, '0');
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE TRIGGER trigger_generate_ticket_number
 BEFORE INSERT ON tickets
