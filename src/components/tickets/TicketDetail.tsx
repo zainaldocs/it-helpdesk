@@ -18,7 +18,9 @@ import {
   Lock,
   UserCheck,
   ExternalLink,
-  MessageSquare
+  MessageSquare,
+  Laptop,
+  Check
 } from 'lucide-react'
 
 interface Note {
@@ -59,7 +61,9 @@ export default function TicketDetail({
 
   const isStaff = currentUser?.profile?.role === 'admin' || currentUser?.profile?.role === 'technician'
 
-  const handleStatusChange = async (newStatus: 'open' | 'in_progress' | 'resolved' | 'closed') => {
+  const handleStatusChange = async (
+    newStatus: 'pending_approval' | 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled'
+  ) => {
     setIsStatusUpdating(true)
     const res = await updateTicketStatus(ticket.id, newStatus)
     setIsStatusUpdating(false)
@@ -128,12 +132,16 @@ export default function TicketDetail({
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'pending_approval':
+        return 'bg-amber-50 text-amber-700 border border-amber-200'
       case 'open':
         return 'bg-sky-50 text-sky-700 border border-sky-200'
       case 'in_progress':
-        return 'bg-amber-50 text-amber-700 border border-amber-200'
+        return 'bg-indigo-50 text-indigo-700 border border-indigo-200'
       case 'resolved':
         return 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+      case 'cancelled':
+        return 'bg-rose-50 text-rose-700 border border-rose-200'
       default:
         return 'bg-slate-100 text-slate-700 border border-slate-200'
     }
@@ -141,12 +149,80 @@ export default function TicketDetail({
 
   const getStatusLabel = (status: string) => {
     switch (status) {
+      case 'pending_approval': return 'Menunggu Approval'
       case 'open': return 'Open'
       case 'in_progress': return 'In Progress'
       case 'resolved': return 'Resolved'
       case 'closed': return 'Closed'
+      case 'cancelled': return 'Cancelled'
       default: return status
     }
+  }
+
+  const steps = [
+    { key: 'pending_approval', label: 'Approval Manager' },
+    { key: 'open', label: 'Buka (IT)' },
+    { key: 'in_progress', label: 'Diproses' },
+    { key: 'resolved', label: 'Selesai' },
+    { key: 'closed', label: 'Ditutup' }
+  ]
+
+  const getStepper = () => {
+    if (ticketStatus === 'cancelled') {
+      return (
+        <div className="p-4.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2.5 shadow-sm">
+          <AlertTriangle className="h-4.5 w-4.5 shrink-0" />
+          <div>
+            <strong className="block font-bold">Tiket Dibatalkan / Ditolak</strong>
+            <span className="opacity-90 font-medium">Pengajuan tiket aduan ini telah dibatalkan atau ditolak oleh Manager Departemen.</span>
+          </div>
+        </div>
+      )
+    }
+
+    const currentIdx = steps.findIndex(s => s.key === ticketStatus)
+
+    return (
+      <div className="w-full py-5 px-4 md:px-8 bg-slate-50 border border-slate-200 rounded-xl">
+        <div className="flex items-center justify-between relative">
+          {/* Connecting Line */}
+          <div className="absolute left-4 right-4 top-4 h-0.5 bg-slate-200 z-0" />
+          <div 
+            className="absolute left-4 top-4 h-0.5 bg-purple-600 z-0 transition-all duration-500" 
+            style={{ width: `${(Math.max(0, currentIdx) / (steps.length - 1)) * 95}%` }}
+          />
+
+          {steps.map((step, idx) => {
+            const isCompleted = idx < currentIdx
+            const isActive = idx === currentIdx
+            const isUpcoming = idx > currentIdx
+
+            return (
+              <div key={step.key} className="flex flex-col items-center z-10 relative">
+                <div className={`h-8 w-8 rounded-full border flex items-center justify-center text-xs font-bold transition duration-300 ${
+                  isActive 
+                    ? 'bg-purple-600 border-purple-600 text-white shadow-md shadow-purple-500/20 ring-4 ring-purple-100'
+                    : isCompleted
+                    ? 'bg-purple-50 border-purple-200 text-purple-600'
+                    : 'bg-white border-slate-200 text-slate-400'
+                }`}>
+                  {isCompleted ? <Check className="h-3.5 w-3.5" /> : idx + 1}
+                </div>
+                <span className={`text-[10px] mt-2 font-bold whitespace-nowrap hidden sm:block ${
+                  isActive ? 'text-purple-700 font-extrabold' : isCompleted ? 'text-slate-700 font-semibold' : 'text-slate-400 font-medium'
+                }`}>
+                  {step.label}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+        {/* Mobile view labels */}
+        <div className="text-center text-xs font-bold text-purple-700 mt-4 sm:hidden uppercase tracking-wider">
+          Tahap Aktif: {steps[currentIdx]?.label || ticketStatus}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -172,8 +248,11 @@ export default function TicketDetail({
             </div>
           </div>
 
+          {/* Timeline Stepper */}
+          {getStepper()}
+
           {/* Metadata Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs shadow-inner">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs shadow-inner">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white rounded-lg border border-slate-100 text-slate-500 shadow-sm">
                 <Tag className="h-4 w-4" />
@@ -207,12 +286,26 @@ export default function TicketDetail({
                 <User className="h-4 w-4" />
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">Pelapor (End-User)</span>
+                <span className="text-slate-500 font-medium block">Pelapor</span>
                 <span className="font-bold text-slate-900 truncate block max-w-[150px]" title={ticket.creator?.email}>
                   {ticket.creator?.full_name}
                 </span>
               </div>
             </div>
+
+            {ticket.asset && (
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-lg border border-slate-100 text-slate-500 shadow-sm">
+                  <Laptop className="h-4 w-4" />
+                </div>
+                <div>
+                  <span className="text-slate-500 font-medium block">Aset Bermasalah</span>
+                  <span className="font-bold text-purple-700 font-mono" title={ticket.asset.name}>
+                    {ticket.asset.asset_code}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Description */}
@@ -374,7 +467,8 @@ export default function TicketDetail({
                   { value: 'open', label: 'Open' },
                   { value: 'in_progress', label: 'In Progress' },
                   { value: 'resolved', label: 'Resolved' },
-                  { value: 'closed', label: 'Closed' }
+                  { value: 'closed', label: 'Closed' },
+                  { value: 'cancelled', label: 'Cancelled' }
                 ].map((st) => (
                   <button
                     key={st.value}

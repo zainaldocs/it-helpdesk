@@ -14,6 +14,7 @@ export async function createTicket(prevState: any, formData: FormData): Promise<
   const description = formData.get('description') as string
   const category = formData.get('category') as string
   const urgency = formData.get('urgency') as string
+  const assetId = formData.get('assetId') as string || null
   const attachmentUrl = formData.get('attachmentUrl') as string || null
 
   if (!title || !description || !category || !urgency) {
@@ -34,8 +35,9 @@ export async function createTicket(prevState: any, formData: FormData): Promise<
     category,
     urgency,
     created_by: user.id,
+    asset_id: assetId,
     attachment_url: attachmentUrl,
-    status: 'open',
+    status: 'pending_approval',
   })
 
   if (error) {
@@ -65,13 +67,14 @@ export async function getTickets() {
     .from('tickets')
     .select(`
       *,
-      creator:profiles!tickets_created_by_fkey(full_name, email),
+      creator:profiles!tickets_created_by_fkey(full_name, email, department_id),
       assignee:profiles!tickets_assigned_to_fkey(full_name, email)
     `)
     .order('created_at', { ascending: false })
 
-  // If user is an end_user, only load their own tickets
-  if (profile.role === 'end_user') {
+  // If user is an end_user or manager, only load their own tickets
+  // Managers will see other users' request approvals in a separate query
+  if (profile.role === 'end_user' || profile.role === 'manager') {
     query = query.eq('created_by', user.id)
   }
 
@@ -92,8 +95,9 @@ export async function getTicketById(id: string) {
     .from('tickets')
     .select(`
       *,
-      creator:profiles!tickets_created_by_fkey(full_name, email),
-      assignee:profiles!tickets_assigned_to_fkey(full_name, email)
+      creator:profiles!tickets_created_by_fkey(full_name, email, department_id, department:departments(name)),
+      assignee:profiles!tickets_assigned_to_fkey(full_name, email),
+      asset:assets(asset_code, name)
     `)
     .eq('id', id)
     .single()
@@ -106,7 +110,10 @@ export async function getTicketById(id: string) {
   return data
 }
 
-export async function updateTicketStatus(ticketId: string, status: 'open' | 'in_progress' | 'resolved' | 'closed') {
+export async function updateTicketStatus(
+  ticketId: string, 
+  status: 'pending_approval' | 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled'
+) {
   const supabase = await createClient()
 
   // Verify permission: only Admin/Technician can change status
@@ -170,7 +177,7 @@ export async function assignTicket(ticketId: string, assignedTo: string | null) 
 export async function getTicketMetrics() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { open: 0, in_progress: 0, resolved: 0, closed: 0, total: 0 }
+  if (!user) return { pending_approval: 0, open: 0, in_progress: 0, resolved: 0, closed: 0, cancelled: 0, total: 0 }
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -178,22 +185,24 @@ export async function getTicketMetrics() {
     .eq('id', user.id)
     .single()
 
-  if (!profile) return { open: 0, in_progress: 0, resolved: 0, closed: 0, total: 0 }
+  if (!profile) return { pending_approval: 0, open: 0, in_progress: 0, resolved: 0, closed: 0, cancelled: 0, total: 0 }
 
   let query = supabase.from('tickets').select('status')
 
-  if (profile.role === 'end_user') {
+  if (profile.role === 'end_user' || profile.role === 'manager') {
     query = query.eq('created_by', user.id)
   }
 
   const { data, error } = await query
-  if (error || !data) return { open: 0, in_progress: 0, resolved: 0, closed: 0, total: 0 }
+  if (error || !data) return { pending_approval: 0, open: 0, in_progress: 0, resolved: 0, closed: 0, cancelled: 0, total: 0 }
 
   const metrics = {
+    pending_approval: data.filter((t) => t.status === 'pending_approval').length,
     open: data.filter((t) => t.status === 'open').length,
     in_progress: data.filter((t) => t.status === 'in_progress').length,
     resolved: data.filter((t) => t.status === 'resolved').length,
     closed: data.filter((t) => t.status === 'closed').length,
+    cancelled: data.filter((t) => t.status === 'cancelled').length,
     total: data.length,
   }
 
@@ -216,3 +225,128 @@ export async function getTechnicians() {
 
   return data
 }
+
+export async function getMyDepartmentAssets() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('department_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !profile.department_id) return []
+
+  const { data, error } = await supabase
+    .from('assets')
+    .select('*')
+    .eq('department_id', profile.department_id)
+    .eq('status', 'Active')
+    .order('name')
+
+  if (error) {
+    console.error('Gagal mengambil aset departemen:', error)
+    return []
+  }
+  return data
+}
+
+export async function getDepartmentPendingTickets() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, department_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role !== 'manager' || !profile.department_id) return []
+
+  const { data, error } = await supabase
+    .from('tickets')
+    .select(`
+      *,
+      creator:profiles!tickets_created_by_fkey(full_name, email, department_id),
+      asset:assets(asset_code, name)
+    `)
+    .eq('status', 'pending_approval')
+    
+  if (error) {
+    console.error('Gagal mengambil tiket approval:', error)
+    return []
+  }
+
+  const filtered = data.filter(t => t.creator?.department_id === profile.department_id)
+  return filtered
+}
+
+export async function approveTicket(ticketId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Tidak terautentikasi' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role !== 'manager') {
+    return { error: 'Hanya Manager yang dapat menyetujui tiket.' }
+  }
+
+  const { error } = await supabase
+    .from('tickets')
+    .update({ 
+      status: 'open', 
+      approved_by: user.id, 
+      approved_at: new Date().toISOString(),
+      updated_at: new Date().toISOString() 
+    })
+    .eq('id', ticketId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/manager/approvals')
+  revalidatePath(`/tickets/${ticketId}`)
+  return { success: true }
+}
+
+export async function cancelTicket(ticketId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Tidak terautentikasi' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role !== 'manager') {
+    return { error: 'Hanya Manager yang dapat membatalkan tiket.' }
+  }
+
+  const { error } = await supabase
+    .from('tickets')
+    .update({ 
+      status: 'cancelled',
+      updated_at: new Date().toISOString() 
+    })
+    .eq('id', ticketId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/manager/approvals')
+  revalidatePath(`/tickets/${ticketId}`)
+  return { success: true }
+}
+

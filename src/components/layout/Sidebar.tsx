@@ -8,12 +8,16 @@ import {
   Ticket, 
   PlusCircle, 
   LogOut,
-  X
+  X,
+  Users,
+  Briefcase,
+  Laptop,
+  FileCheck
 } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
 
 interface SidebarProps {
-  role: 'admin' | 'technician' | 'end_user'
+  role: 'admin' | 'technician' | 'manager' | 'end_user'
   fullName: string
   isOpen: boolean
   onClose: () => void
@@ -50,6 +54,30 @@ export default function Sidebar({ role, fullName, isOpen, onClose }: SidebarProp
       ]
     }
 
+    if (role === 'manager') {
+      return [
+        ...baseLinks,
+        {
+          href: '/tickets',
+          label: 'Tiket Saya',
+          icon: Ticket,
+          active: pathname.startsWith('/tickets') && pathname !== '/tickets/create'
+        },
+        {
+          href: '/tickets/create',
+          label: 'Buat Tiket Baru',
+          icon: PlusCircle,
+          active: pathname === '/tickets/create'
+        },
+        {
+          href: '/manager/approvals',
+          label: 'Request Approval',
+          icon: FileCheck,
+          active: pathname.startsWith('/manager/approvals')
+        }
+      ]
+    }
+
     if (role === 'technician') {
       return [
         ...baseLinks,
@@ -70,6 +98,24 @@ export default function Sidebar({ role, fullName, isOpen, onClose }: SidebarProp
           label: 'Kelola Tiket',
           icon: Ticket,
           active: pathname.startsWith('/tickets')
+        },
+        {
+          href: '/admin/users',
+          label: 'Kelola User',
+          icon: Users,
+          active: pathname.startsWith('/admin/users')
+        },
+        {
+          href: '/admin/departments',
+          label: 'Kelola Dept',
+          icon: Briefcase,
+          active: pathname.startsWith('/admin/departments')
+        },
+        {
+          href: '/admin/assets',
+          label: 'Kelola Aset',
+          icon: Laptop,
+          active: pathname.startsWith('/admin/assets')
         }
       ]
     }
@@ -89,6 +135,8 @@ export default function Sidebar({ role, fullName, isOpen, onClose }: SidebarProp
         return 'Admin'
       case 'technician':
         return 'IT Support'
+      case 'manager':
+        return 'Manager'
       default:
         return 'Karyawan'
     }
@@ -100,6 +148,8 @@ export default function Sidebar({ role, fullName, isOpen, onClose }: SidebarProp
         return 'bg-rose-50 text-rose-700 border-rose-200'
       case 'technician':
         return 'bg-blue-50 text-blue-700 border-blue-200'
+      case 'manager':
+        return 'bg-amber-50 text-amber-700 border-amber-200'
       default:
         return 'bg-slate-100 text-slate-700 border-slate-200'
     }

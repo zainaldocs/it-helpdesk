@@ -134,10 +134,11 @@ export default function RegisterPage() {
                   Pilih Peran (Role)
                 </label>
                 <input type="hidden" name="role" value={selectedRole} />
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
                     { id: 'end_user', label: 'End-User', desc: 'Melaporkan Isu' },
-                    { id: 'technician', label: 'Technician', desc: 'Menangani Isu' },
+                    { id: 'manager', label: 'Manager', desc: 'Approve & Lapor' },
+                    { id: 'technician', label: 'IT Support', desc: 'Menangani Isu' },
                     { id: 'admin', label: 'Admin', desc: 'Full Akses' },
                   ].map((role) => (
                     <button
