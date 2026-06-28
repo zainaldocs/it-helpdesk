@@ -1,6 +1,4 @@
-'use client'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   Search, 
@@ -22,7 +20,7 @@ interface Ticket {
   description: string
   category: string
   urgency: 'low' | 'medium' | 'high' | 'critical'
-  status: 'open' | 'in_progress' | 'resolved' | 'closed'
+  status: 'pending_approval' | 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled'
   created_at: string
   creator: { full_name: string; email: string } | null
   assignee: { full_name: string; email: string } | null
@@ -38,6 +36,15 @@ export default function TicketList({ initialTickets, role }: TicketListProps) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [urgencyFilter, setUrgencyFilter] = useState('all')
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 8
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, statusFilter, urgencyFilter])
 
   const getUrgencyBadge = (urgency: string) => {
     switch (urgency) {
@@ -54,12 +61,16 @@ export default function TicketList({ initialTickets, role }: TicketListProps) {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'pending_approval':
+        return 'bg-amber-50 text-amber-700 border border-amber-200'
       case 'open':
         return 'bg-sky-50 text-sky-700 border border-sky-200'
       case 'in_progress':
-        return 'bg-amber-50 text-amber-700 border border-amber-200'
+        return 'bg-indigo-50 text-indigo-700 border border-indigo-200'
       case 'resolved':
         return 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+      case 'cancelled':
+        return 'bg-rose-50 text-rose-700 border border-rose-200'
       default:
         return 'bg-slate-100 text-slate-700 border border-slate-200'
     }
@@ -67,12 +78,16 @@ export default function TicketList({ initialTickets, role }: TicketListProps) {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
+      case 'pending_approval':
+        return <HelpCircle className="h-4 w-4 text-amber-600 animate-pulse" />
       case 'open':
         return <HelpCircle className="h-4 w-4 text-sky-600" />
       case 'in_progress':
-        return <Clock className="h-4 w-4 text-amber-600" />
+        return <Clock className="h-4 w-4 text-indigo-600" />
       case 'resolved':
         return <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+      case 'cancelled':
+        return <XCircle className="h-4 w-4 text-rose-500" />
       default:
         return <XCircle className="h-4 w-4 text-slate-500" />
     }
@@ -80,10 +95,12 @@ export default function TicketList({ initialTickets, role }: TicketListProps) {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
+      case 'pending_approval': return 'Menunggu Approval'
       case 'open': return 'Open'
       case 'in_progress': return 'In Progress'
       case 'resolved': return 'Resolved'
       case 'closed': return 'Closed'
+      case 'cancelled': return 'Cancelled'
       default: return status
     }
   }
@@ -101,6 +118,12 @@ export default function TicketList({ initialTickets, role }: TicketListProps) {
 
     return matchesSearch && matchesStatus && matchesUrgency
   })
+
+  // Pagination calculation
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const currentTickets = filteredTickets.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(filteredTickets.length / itemsPerPage)
 
   return (
     <div className="space-y-5">
@@ -129,10 +152,12 @@ export default function TicketList({ initialTickets, role }: TicketListProps) {
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition cursor-pointer"
             >
               <option value="all">Semua Status</option>
+              <option value="pending_approval">Menunggu Approval</option>
               <option value="open">Open</option>
               <option value="in_progress">In Progress</option>
               <option value="resolved">Resolved</option>
               <option value="closed">Closed</option>
+              <option value="cancelled">Cancelled</option>
             </select>
           </div>
 
@@ -173,7 +198,7 @@ export default function TicketList({ initialTickets, role }: TicketListProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredTickets.map((ticket) => (
+                  {currentTickets.map((ticket) => (
                     <tr key={ticket.id} className="hover:bg-slate-50/80 transition duration-150">
                       <td className="px-6 py-4 font-mono font-bold text-slate-500 text-xs">
                         {ticket.ticket_number}
@@ -233,7 +258,7 @@ export default function TicketList({ initialTickets, role }: TicketListProps) {
 
             {/* Mobile / Tablet Card View */}
             <div className="lg:hidden divide-y divide-slate-100">
-              {filteredTickets.map((ticket) => (
+              {currentTickets.map((ticket) => (
                 <div key={ticket.id} className="p-5 space-y-3.5 hover:bg-slate-50 transition">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <span className="text-xs font-mono font-bold text-slate-500">{ticket.ticket_number}</span>
@@ -275,6 +300,31 @@ export default function TicketList({ initialTickets, role }: TicketListProps) {
                 </div>
               ))}
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4.5 bg-slate-50 border-t border-slate-150 text-xs">
+                <div className="text-slate-500 font-semibold">
+                  Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredTickets.length)} dari {filteredTickets.length} tiket
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                  >
+                    Sebelumnya
+                  </button>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                  >
+                    Selanjutnya
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <div className="p-16 text-center flex flex-col items-center justify-center gap-3">

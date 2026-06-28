@@ -25,6 +25,20 @@ export default function DepartmentsPage() {
     setIsLoading(false)
   }
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 8
+
+  // Reset page when data changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [departments])
+
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const currentDepts = departments.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(departments.length / itemsPerPage)
+
   const handleOpenCreate = () => {
     setCurrentDept(null)
     setDeptName('')
@@ -110,7 +124,7 @@ export default function DepartmentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {departments.map((dept) => (
+                {currentDepts.map((dept) => (
                   <tr key={dept.id} className="hover:bg-slate-50/50 transition">
                     <td className="px-6 py-4.5 font-semibold text-slate-900 flex items-center gap-3">
                       <div className="p-2 bg-purple-50 border border-purple-100 rounded-lg text-purple-600">
@@ -140,6 +154,31 @@ export default function DepartmentsPage() {
                 ))}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4.5 bg-slate-50 border-t border-slate-200 text-xs">
+                <div className="text-slate-500 font-semibold">
+                  Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, departments.length)} dari {departments.length} departemen
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                  >
+                    Sebelumnya
+                  </button>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                  >
+                    Selanjutnya
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="p-16 text-center flex flex-col items-center justify-center gap-3">

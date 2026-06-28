@@ -13,6 +13,20 @@ export default function ApprovalsPage() {
     fetchPendingTickets()
   }, [])
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
+
+  // Reset page when tickets update
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [tickets])
+
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const currentTickets = tickets.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(tickets.length / itemsPerPage)
+
   const fetchPendingTickets = async () => {
     setIsLoading(true)
     const data = await getDepartmentPendingTickets()
@@ -79,7 +93,7 @@ export default function ApprovalsPage() {
           </div>
         ) : tickets.length > 0 ? (
           <div className="divide-y divide-slate-100">
-            {tickets.map((ticket) => (
+            {currentTickets.map((ticket) => (
               <div 
                 key={ticket.id} 
                 className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:bg-slate-50/50 transition duration-200"
@@ -134,6 +148,31 @@ export default function ApprovalsPage() {
                 </div>
               </div>
             ))}
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4.5 bg-slate-50 border-t border-slate-200 text-xs">
+                <div className="text-slate-500 font-semibold">
+                  Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, tickets.length)} dari {tickets.length} pengajuan
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                  >
+                    Sebelumnya
+                  </button>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                  >
+                    Selanjutnya
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="p-16 text-center flex flex-col items-center justify-center gap-3">
