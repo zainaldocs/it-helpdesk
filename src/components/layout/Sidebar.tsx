@@ -12,7 +12,8 @@ import {
   Users,
   Briefcase,
   Laptop,
-  FileCheck
+  FileCheck,
+  Settings
 } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
 
@@ -116,6 +117,12 @@ export default function Sidebar({ role, fullName, isOpen, onClose }: SidebarProp
           label: 'Kelola Aset',
           icon: Laptop,
           active: pathname.startsWith('/admin/assets')
+        },
+        {
+          href: '/admin/settings',
+          label: 'Pengaturan Tema',
+          icon: Settings,
+          active: pathname.startsWith('/admin/settings')
         }
       ]
     }
@@ -145,46 +152,46 @@ export default function Sidebar({ role, fullName, isOpen, onClose }: SidebarProp
   const getRoleColor = () => {
     switch (role) {
       case 'admin':
-        return 'bg-rose-50 text-rose-700 border-rose-200'
+        return 'bg-rose-500/10 text-rose-500 border-rose-500/20'
       case 'technician':
-        return 'bg-blue-50 text-blue-700 border-blue-200'
+        return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
       case 'manager':
-        return 'bg-amber-50 text-amber-700 border-amber-200'
+        return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200'
+        return 'bg-slate-500/10 text-slate-400 border-slate-500/20'
     }
   }
 
   return (
     <aside 
-      className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between h-screen transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex
+      className={`fixed inset-y-0 left-0 z-50 w-64 bg-bg-card border-r border-border-card flex flex-col justify-between h-screen transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex
         ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
       `}
     >
       {/* Brand Header */}
       <div>
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border-card">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-tr from-purple-600 to-fuchsia-600 flex items-center justify-center shadow-md shadow-purple-500/20">
+            <div className="h-9 w-9 rounded-lg bg-brand-primary flex items-center justify-center shadow-md shadow-brand-primary/20">
               <Terminal className="h-4.5 w-4.5 text-white" />
             </div>
-            <span className="text-lg font-bold text-slate-900 tracking-tight">IT Helpdesk</span>
+            <span className="text-lg font-bold text-text-main tracking-tight">IT Helpdesk</span>
           </div>
           
           {/* Close button for mobile only */}
           <button 
             onClick={onClose}
-            className="p-2 -mr-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg lg:hidden transition"
+            className="p-2 -mr-2 text-text-muted hover:text-text-main hover:bg-bg-app rounded-lg lg:hidden transition"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* User Card */}
-        <div className="px-4 py-4.5 border-b border-slate-100">
-          <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 flex flex-col gap-1.5 shadow-sm">
-            <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">Sedang Aktif</span>
-            <span className="text-sm font-semibold text-slate-900 truncate max-w-xs">{fullName}</span>
+        <div className="px-4 py-4.5 border-b border-border-card">
+          <div className="bg-bg-app border border-border-card rounded-xl p-3.5 flex flex-col gap-1.5 shadow-sm">
+            <span className="text-xs text-text-muted uppercase font-bold tracking-wider">Sedang Aktif</span>
+            <span className="text-sm font-semibold text-text-main truncate max-w-xs">{fullName}</span>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit border ${getRoleColor()}`}>
               {getRoleLabel()}
             </span>
@@ -199,13 +206,14 @@ export default function Sidebar({ role, fullName, isOpen, onClose }: SidebarProp
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onClose}
                 className={`flex items-center gap-3.5 px-4.5 py-3 rounded-xl text-sm font-medium transition duration-200 ${
                   item.active
-                    ? 'bg-purple-50 border border-purple-100 text-purple-700 shadow-sm'
-                    : 'text-slate-500 hover:text-purple-700 hover:bg-slate-50 border border-transparent'
+                    ? 'bg-brand-light border border-brand-primary/20 text-brand-text shadow-sm'
+                    : 'text-text-muted hover:text-brand-text hover:bg-brand-light/30 border border-transparent'
                 }`}
               >
-                <Icon className={`h-4.5 w-4.5 ${item.active ? 'text-purple-600' : 'text-slate-400'}`} />
+                <Icon className={`h-4.5 w-4.5 ${item.active ? 'text-brand-primary' : 'text-text-muted'}`} />
                 {item.label}
               </Link>
             )
@@ -214,10 +222,10 @@ export default function Sidebar({ role, fullName, isOpen, onClose }: SidebarProp
       </div>
 
       {/* Logout Footer */}
-      <div className="p-4 border-t border-slate-100">
+      <div className="p-4 border-t border-border-card">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3.5 w-full px-4.5 py-3 rounded-xl text-sm font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition duration-200 cursor-pointer"
+          className="flex items-center gap-3.5 w-full px-4.5 py-3 rounded-xl text-sm font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/25 transition duration-200 cursor-pointer"
         >
           <LogOut className="h-4.5 w-4.5" />
           Keluar (Logout)

@@ -1,149 +1,150 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { 
-  updateTicketStatus, 
-  assignTicket 
-} from '@/app/actions/tickets'
-import { createNote } from '@/app/actions/notes'
-import { 
-  User, 
+  Check, 
+  MessageSquare, 
+  Send, 
+  Loader2, 
   Clock, 
-  AlertTriangle, 
-  Tag, 
-  Calendar, 
-  FileCheck,
-  Send,
-  Loader2,
+  AlertTriangle,
+  Folder,
+  Calendar,
+  User,
+  Paperclip,
+  ExternalLink,
   Lock,
   UserCheck,
-  ExternalLink,
-  MessageSquare,
+  Tag,
   Laptop,
-  Check
+  FileCheck
 } from 'lucide-react'
+import { updateTicketStatus, assignTicket, addTicketNote } from '@/app/actions/tickets'
 
 interface Note {
   id: string
   content: string
-  is_internal: boolean
   created_at: string
+  is_internal: boolean
   user: {
     full_name: string
-    email: string
     role: string
-  }
+    email: string
+  } | null
 }
 
 interface TicketDetailProps {
-  ticket: any
-  currentUser: any
-  initialNotes: any[]
-  technicians: any[]
+  initialTicket: any
+  initialNotes: Note[]
+  currentUser: {
+    id: string
+    role: string
+    email: string
+  }
+  technicians: { id: string; full_name: string; role: string }[]
 }
 
 export default function TicketDetail({ 
-  ticket, 
-  currentUser, 
+  initialTicket, 
   initialNotes, 
-  technicians 
+  currentUser,
+  technicians
 }: TicketDetailProps) {
+  const [ticket, setTicket] = useState(initialTicket)
   const [notes, setNotes] = useState<Note[]>(initialNotes)
+  
+  // Note Form State
   const [noteContent, setNoteContent] = useState('')
   const [isInternalNote, setIsInternalNote] = useState(false)
   const [isNoteSubmitting, setIsNoteSubmitting] = useState(false)
 
-  const [ticketStatus, setTicketStatus] = useState(ticket.status)
-  const [isStatusUpdating, setIsStatusUpdating] = useState(false)
-
+  // Status & Assign Actions State
+  const [isStatusUpdating, startStatusTransition] = useTransition()
+  const [isAssigning, startAssignTransition] = useTransition()
+  
+  const ticketStatus = ticket.status
+  const isStaff = currentUser.role === 'admin' || currentUser.role === 'technician'
   const [assignedTo, setAssignedTo] = useState(ticket.assigned_to || '')
-  const [isAssigning, setIsAssigning] = useState(false)
 
-  const isStaff = currentUser?.profile?.role === 'admin' || currentUser?.profile?.role === 'technician'
-
-  const handleStatusChange = async (
-    newStatus: 'pending_approval' | 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled'
-  ) => {
-    setIsStatusUpdating(true)
-    const res = await updateTicketStatus(ticket.id, newStatus)
-    setIsStatusUpdating(false)
-
-    if (res.success) {
-      setTicketStatus(newStatus)
-    } else {
-      alert(res.error || 'Gagal memperbarui status.')
-    }
+  const handleStatusChange = async (newStatus: 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled') => {
+    if (!confirm(`Ubah status tiket menjadi "${newStatus}"?`)) return
+    
+    startStatusTransition(async () => {
+      const result = await updateTicketStatus(ticket.id, newStatus)
+      if (result.error) {
+        alert('Gagal memperbarui status: ' + result.error)
+      } else {
+        setTicket(prev => ({ ...prev, status: newStatus }))
+        // Refresh notes list because status update may append system log notes
+        if (result.notes) {
+          setNotes(result.notes as any[])
+        }
+      }
+    })
   }
 
-  const handleAssignChange = async (technicianId: string) => {
-    setIsAssigning(true)
-    const val = technicianId === '' ? null : technicianId
-    const res = await assignTicket(ticket.id, val)
-    setIsAssigning(false)
-
-    if (res.success) {
-      setAssignedTo(technicianId)
-    } else {
-      alert(res.error || 'Gagal menugaskan tiket.')
-    }
+  const handleAssignChange = async (techId: string) => {
+    startAssignTransition(async () => {
+      const result = await assignTicket(ticket.id, techId || null)
+      if (result.error) {
+        alert('Gagal menugaskan tiket: ' + result.error)
+      } else {
+        setAssignedTo(techId)
+        setTicket(prev => ({ ...prev, assigned_to: techId || null }))
+        // Refresh notes
+        if (result.notes) {
+          setNotes(result.notes as any[])
+        }
+      }
+    })
   }
 
   const handleNoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!noteContent.trim()) return
+    if (!noteContent.trim() || isNoteSubmitting) return
 
     setIsNoteSubmitting(true)
-    const res = await createNote(ticket.id, noteContent, isInternalNote)
+    const result = await addTicketNote(ticket.id, noteContent.trim(), isInternalNote)
     setIsNoteSubmitting(false)
 
-    if (res.success) {
-      // Append note locally
-      const newNote: Note = {
-        id: Math.random().toString(),
-        content: noteContent,
-        is_internal: isInternalNote,
-        created_at: new Date().toISOString(),
-        user: {
-          full_name: currentUser.profile.full_name,
-          email: currentUser.email,
-          role: currentUser.profile.role
-        }
-      }
-      setNotes([...notes, newNote])
+    if (result.error) {
+      alert('Gagal menambah catatan: ' + result.error)
+    } else {
       setNoteContent('')
       setIsInternalNote(false)
-    } else {
-      alert(res.error || 'Gagal menambahkan catatan.')
+      if (result.notes) {
+        setNotes(result.notes as any[])
+      }
     }
   }
 
   const getUrgencyBadge = (urgency: string) => {
     switch (urgency) {
       case 'critical':
-        return 'bg-red-50 text-red-700 border border-red-200'
+        return 'bg-red-500/10 text-red-500 border border-red-500/20'
       case 'high':
-        return 'bg-orange-50 text-orange-700 border border-orange-200'
+        return 'bg-orange-500/10 text-orange-500 border border-orange-500/20'
       case 'medium':
-        return 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+        return 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
       default:
-        return 'bg-purple-50 text-purple-700 border border-purple-200'
+        return 'bg-brand-light text-brand-text border border-brand-primary/20'
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending_approval':
-        return 'bg-amber-50 text-amber-700 border border-amber-200'
+        return 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
       case 'open':
-        return 'bg-sky-50 text-sky-700 border border-sky-200'
+        return 'bg-sky-500/10 text-sky-500 border border-sky-500/20'
       case 'in_progress':
-        return 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+        return 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20'
       case 'resolved':
-        return 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+        return 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
       case 'cancelled':
-        return 'bg-rose-50 text-rose-700 border border-rose-200'
+        return 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
       default:
-        return 'bg-slate-100 text-slate-700 border border-slate-200'
+        return 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
     }
   }
 
@@ -170,7 +171,7 @@ export default function TicketDetail({
   const getStepper = () => {
     if (ticketStatus === 'cancelled') {
       return (
-        <div className="p-4.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2.5 shadow-sm">
+        <div className="p-4.5 bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-semibold rounded-xl flex items-center gap-2.5 shadow-sm">
           <AlertTriangle className="h-4.5 w-4.5 shrink-0" />
           <div>
             <strong className="block font-bold">Tiket Dibatalkan / Ditolak</strong>
@@ -183,33 +184,32 @@ export default function TicketDetail({
     const currentIdx = steps.findIndex(s => s.key === ticketStatus)
 
     return (
-      <div className="w-full py-5 px-4 md:px-8 bg-slate-50 border border-slate-200 rounded-xl">
+      <div className="w-full py-5 px-4 md:px-8 bg-bg-app border border-border-card rounded-xl transition duration-200">
         <div className="flex items-center justify-between relative">
           {/* Connecting Line */}
-          <div className="absolute left-4 right-4 top-4 h-0.5 bg-slate-200 z-0" />
+          <div className="absolute left-4 right-4 top-4 h-0.5 bg-slate-200/20 z-0" />
           <div 
-            className="absolute left-4 top-4 h-0.5 bg-purple-600 z-0 transition-all duration-500" 
+            className="absolute left-4 top-4 h-0.5 bg-brand-primary z-0 transition-all duration-500" 
             style={{ width: `${(Math.max(0, currentIdx) / (steps.length - 1)) * 95}%` }}
           />
 
           {steps.map((step, idx) => {
             const isCompleted = idx < currentIdx
             const isActive = idx === currentIdx
-            const isUpcoming = idx > currentIdx
 
             return (
               <div key={step.key} className="flex flex-col items-center z-10 relative">
                 <div className={`h-8 w-8 rounded-full border flex items-center justify-center text-xs font-bold transition duration-300 ${
                   isActive 
-                    ? 'bg-purple-600 border-purple-600 text-white shadow-md shadow-purple-500/20 ring-4 ring-purple-100'
+                    ? 'bg-brand-primary border-brand-primary text-white shadow-md shadow-brand-primary/20 ring-4 ring-brand-primary/10'
                     : isCompleted
-                    ? 'bg-purple-50 border-purple-200 text-purple-600'
-                    : 'bg-white border-slate-200 text-slate-400'
+                    ? 'bg-brand-light border border-brand-primary/20 text-brand-text'
+                    : 'bg-bg-card border-border-card text-text-muted'
                 }`}>
                   {isCompleted ? <Check className="h-3.5 w-3.5" /> : idx + 1}
                 </div>
                 <span className={`text-[10px] mt-2 font-bold whitespace-nowrap hidden sm:block ${
-                  isActive ? 'text-purple-700 font-extrabold' : isCompleted ? 'text-slate-700 font-semibold' : 'text-slate-400 font-medium'
+                  isActive ? 'text-brand-text font-extrabold' : isCompleted ? 'text-text-main font-semibold' : 'text-text-muted font-medium'
                 }`}>
                   {step.label}
                 </span>
@@ -218,7 +218,7 @@ export default function TicketDetail({
           })}
         </div>
         {/* Mobile view labels */}
-        <div className="text-center text-xs font-bold text-purple-700 mt-4 sm:hidden uppercase tracking-wider">
+        <div className="text-center text-xs font-bold text-brand-text mt-4 sm:hidden uppercase tracking-wider">
           Tahap Aktif: {steps[currentIdx]?.label || ticketStatus}
         </div>
       </div>
@@ -229,22 +229,22 @@ export default function TicketDetail({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
       {/* Detail Tiket Utama (Kiri/Tengah) */}
       <div className="lg:col-span-2 space-y-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-8 space-y-6 shadow-sm">
+        <div className="bg-bg-card border border-border-card rounded-2xl p-5 md:p-8 space-y-6 shadow-sm transition duration-200">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 pb-6 border-b border-slate-100">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 pb-6 border-b border-border-card">
             <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">{ticket.ticket_number}</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${getUrgencyBadge(ticket.urgency)}`}>
-                  {ticket.urgency.toUpperCase()}
-                </span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${getStatusBadge(ticketStatus)}`}>
-                  {getStatusLabel(ticketStatus)}
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs font-mono font-bold text-text-muted">{ticket.ticket_number}</span>
+                <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase ${getUrgencyBadge(ticket.urgency)}`}>
+                  {ticket.urgency}
                 </span>
               </div>
-              <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                {ticket.title}
-              </h1>
+              <h1 className="text-xl md:text-2xl font-black text-text-main leading-tight">{ticket.title}</h1>
+            </div>
+            <div className="flex flex-col items-start sm:items-end gap-1 flex-shrink-0">
+              <span className={`text-xs px-3 py-1 rounded-full font-bold shadow-sm ${getStatusBadge(ticketStatus)}`}>
+                {getStatusLabel(ticketStatus)}
+              </span>
             </div>
           </div>
 
@@ -252,24 +252,24 @@ export default function TicketDetail({
           {getStepper()}
 
           {/* Metadata Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs shadow-inner">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 rounded-xl bg-bg-app border border-border-card text-xs shadow-inner">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white rounded-lg border border-slate-100 text-slate-500 shadow-sm">
+              <div className="p-2 bg-bg-card rounded-lg border border-border-card text-text-muted shadow-sm">
                 <Tag className="h-4 w-4" />
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">Kategori</span>
-                <span className="font-bold text-slate-900">{ticket.category}</span>
+                <span className="text-text-muted font-medium block">Kategori</span>
+                <span className="font-bold text-text-main">{ticket.category}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white rounded-lg border border-slate-100 text-slate-500 shadow-sm">
+              <div className="p-2 bg-bg-card rounded-lg border border-border-card text-text-muted shadow-sm">
                 <Calendar className="h-4 w-4" />
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">Tanggal Dibuat</span>
-                <span className="font-bold text-slate-900">
+                <span className="text-text-muted font-medium block">Tanggal Dibuat</span>
+                <span className="font-bold text-text-main">
                   {new Date(ticket.created_at).toLocaleDateString('id-ID', {
                     day: 'numeric',
                     month: 'short',
@@ -282,12 +282,12 @@ export default function TicketDetail({
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white rounded-lg border border-slate-100 text-slate-500 shadow-sm">
+              <div className="p-2 bg-bg-card rounded-lg border border-border-card text-text-muted shadow-sm">
                 <User className="h-4 w-4" />
               </div>
               <div>
-                <span className="text-slate-500 font-medium block">Pelapor</span>
-                <span className="font-bold text-slate-900 truncate block max-w-[150px]" title={ticket.creator?.email}>
+                <span className="text-text-muted font-medium block">Pelapor</span>
+                <span className="font-bold text-text-main truncate block max-w-[150px]" title={ticket.creator?.email}>
                   {ticket.creator?.full_name}
                 </span>
               </div>
@@ -295,12 +295,12 @@ export default function TicketDetail({
 
             {ticket.asset && (
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-white rounded-lg border border-slate-100 text-slate-500 shadow-sm">
+                <div className="p-2 bg-bg-card rounded-lg border border-border-card text-text-muted shadow-sm">
                   <Laptop className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="text-slate-500 font-medium block">Aset Bermasalah</span>
-                  <span className="font-bold text-purple-700 font-mono" title={ticket.asset.name}>
+                  <span className="text-text-muted font-medium block">Aset Bermasalah</span>
+                  <span className="font-bold text-brand-text font-mono" title={ticket.asset.name}>
                     {ticket.asset.asset_code}
                   </span>
                 </div>
@@ -310,8 +310,8 @@ export default function TicketDetail({
 
           {/* Description */}
           <div className="space-y-2">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Deskripsi Masalah</h3>
-            <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+            <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">Deskripsi Masalah</h3>
+            <div className="p-5 rounded-xl bg-bg-app border border-border-card text-text-main text-sm leading-relaxed whitespace-pre-wrap font-medium">
               {ticket.description}
             </div>
           </div>
@@ -319,8 +319,8 @@ export default function TicketDetail({
           {/* Asset Specifications */}
           {ticket.asset?.specifications && (
             <div className="space-y-2">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Spesifikasi Perangkat</h3>
-              <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold leading-relaxed whitespace-pre-wrap font-mono shadow-inner">
+              <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">Spesifikasi Perangkat</h3>
+              <div className="p-5 rounded-xl bg-bg-app border border-border-card text-text-main text-xs font-semibold leading-relaxed whitespace-pre-wrap font-mono shadow-inner">
                 {ticket.asset.specifications}
               </div>
             </div>
@@ -329,12 +329,12 @@ export default function TicketDetail({
           {/* Attachment */}
           {ticket.attachment_url && (
             <div className="space-y-2">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lampiran Pendukung</h3>
+              <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">Lampiran Pendukung</h3>
               <a 
                 href={ticket.attachment_url} 
                 target="_blank" 
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 p-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-purple-600 hover:text-purple-700 hover:bg-purple-50 hover:border-purple-200 transition shadow-sm w-full sm:w-auto justify-center"
+                className="inline-flex items-center gap-2 p-3 bg-bg-card border border-border-card rounded-xl text-xs font-bold text-brand-primary hover:text-brand-hover hover:bg-brand-light hover:border-brand-primary/20 transition shadow-sm w-full sm:w-auto justify-center"
               >
                 <span>Lihat Lampiran</span>
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -344,10 +344,10 @@ export default function TicketDetail({
         </div>
 
         {/* Notes/Discussions Section */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-8 space-y-6 shadow-sm">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <MessageSquare className="h-4.5 w-4.5 text-purple-500" />
+        <div className="bg-bg-card border border-border-card rounded-2xl p-5 md:p-8 space-y-6 shadow-sm transition duration-200">
+          <div className="flex items-center justify-between border-b border-border-card pb-4">
+            <h3 className="text-sm font-black text-text-main uppercase tracking-wider flex items-center gap-2">
+              <MessageSquare className="h-4.5 w-4.5 text-brand-primary" />
               Catatan & Diskusi ({notes.length})
             </h3>
           </div>
@@ -357,27 +357,26 @@ export default function TicketDetail({
             {notes.length > 0 ? (
               notes.map((note) => {
                 const isInternal = note.is_internal
-                const isNoteUserStaff = note.user?.role === 'admin' || note.user?.role === 'technician'
                 return (
                   <div 
                     key={note.id} 
                     className={`p-4.5 rounded-xl border text-sm transition shadow-sm ${
                       isInternal 
-                        ? 'bg-amber-50 border-amber-200 text-amber-900' 
-                        : 'bg-white border-slate-200 text-slate-700'
+                        ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' 
+                        : 'bg-bg-card border-border-card text-text-main'
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
                       <div className="flex items-center gap-2 text-xs">
-                        <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 border border-slate-200">
+                        <div className="h-6 w-6 rounded-full bg-bg-app flex items-center justify-center text-[10px] font-bold text-text-muted border border-border-card">
                           {note.user?.full_name.charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-bold text-slate-900">{note.user?.full_name}</span>
-                        <span className="text-[10px] text-slate-500 font-medium">({note.user?.role === 'admin' ? 'Admin' : note.user?.role === 'technician' ? 'IT Support' : 'Karyawan'})</span>
+                        <span className="font-bold text-text-main">{note.user?.full_name}</span>
+                        <span className="text-[10px] text-text-muted font-medium">({note.user?.role === 'admin' ? 'Admin' : note.user?.role === 'technician' ? 'IT Support' : 'Karyawan'})</span>
                       </div>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-500 font-medium ml-8 sm:ml-0">
+                      <div className="flex items-center gap-2 text-[10px] text-text-muted font-medium ml-8 sm:ml-0">
                         {isInternal && (
-                          <span className="bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <span className="bg-amber-500/15 text-amber-500 border border-amber-500/25 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
                             <Lock className="h-2.5 w-2.5" />
                             Internal Notes
                           </span>
@@ -397,16 +396,16 @@ export default function TicketDetail({
                 )
               })
             ) : (
-              <div className="p-8 text-center text-slate-500 text-xs font-medium italic bg-slate-50 rounded-xl border border-slate-100">
+              <div className="p-8 text-center text-text-muted text-xs font-medium italic bg-bg-app rounded-xl border border-border-card">
                 Belum ada catatan atau tanggapan untuk tiket ini.
               </div>
             )}
           </div>
 
           {/* Note Form */}
-          <form onSubmit={handleNoteSubmit} className="space-y-4 pt-5 border-t border-slate-100">
+          <form onSubmit={handleNoteSubmit} className="space-y-4 pt-5 border-t border-border-card">
             <div>
-              <label htmlFor="noteContent" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+              <label htmlFor="noteContent" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                 Tambahkan Tanggapan / Catatan
               </label>
               <textarea
@@ -416,7 +415,7 @@ export default function TicketDetail({
                 placeholder="Ketik tanggapan Anda di sini..."
                 value={noteContent}
                 onChange={(e) => setNoteContent(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition duration-200 resize-none shadow-inner"
+                className="w-full px-4 py-3 bg-bg-app border border-border-card rounded-xl text-sm text-text-main placeholder-text-muted/50 font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition duration-200 resize-none shadow-inner"
               />
             </div>
 
@@ -428,7 +427,7 @@ export default function TicketDetail({
                     type="checkbox"
                     checked={isInternalNote}
                     onChange={(e) => setIsInternalNote(e.target.checked)}
-                    className="h-4.5 w-4.5 bg-white border border-slate-300 rounded accent-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    className="h-4.5 w-4.5 bg-bg-card border border-border-card rounded accent-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
                   <Lock className="h-3.5 w-3.5" />
                   Jadikan sebagai Catatan Internal (Tim IT)
@@ -440,7 +439,7 @@ export default function TicketDetail({
               <button
                 type="submit"
                 disabled={isNoteSubmitting}
-                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-purple-500/20 w-full sm:w-auto"
+                className="px-6 py-2.5 bg-brand-primary hover:bg-brand-hover disabled:opacity-50 text-white text-xs font-bold rounded-xl transition duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-brand-primary/20 w-full sm:w-auto"
               >
                 {isNoteSubmitting ? (
                   <>
@@ -463,15 +462,15 @@ export default function TicketDetail({
       <div className="space-y-6">
         {/* Action Panel for Staff */}
         {isStaff ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5 shadow-sm">
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-slate-100">
-              <FileCheck className="h-4.5 w-4.5 text-purple-500" />
+          <div className="bg-bg-card border border-border-card rounded-2xl p-6 space-y-5 shadow-sm transition duration-200">
+            <h3 className="text-sm font-black text-text-main uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-border-card">
+              <FileCheck className="h-4.5 w-4.5 text-brand-primary" />
               Kontrol Teknisi & Admin
             </h3>
 
             {/* Change Status */}
             <div className="space-y-3">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">Perbarui Status Tiket</span>
+              <span className="text-xs text-text-muted font-bold uppercase tracking-wider block">Perbarui Status Tiket</span>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { value: 'open', label: 'Open' },
@@ -487,7 +486,7 @@ export default function TicketDetail({
                     className={`px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer text-center ${
                       ticketStatus === st.value
                         ? getStatusBadge(st.value) + ' shadow-sm'
-                        : 'border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                        : 'border-border-card bg-bg-app text-text-muted hover:text-text-main hover:bg-bg-card'
                     }`}
                   >
                     {st.label}
@@ -497,12 +496,12 @@ export default function TicketDetail({
             </div>
 
             {/* Assign Ticket */}
-            <div className="space-y-2 pt-4 border-t border-slate-100">
-              <label htmlFor="assign" className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
+            <div className="space-y-2 pt-4 border-t border-border-card">
+              <label htmlFor="assign" className="text-xs text-text-muted font-bold uppercase tracking-wider block">
                 Tugaskan Teknisi (Assignee)
               </label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-text-muted">
                   <UserCheck className="h-4 w-4" />
                 </span>
                 <select
@@ -510,7 +509,7 @@ export default function TicketDetail({
                   value={assignedTo}
                   disabled={isAssigning}
                   onChange={(e) => handleAssignChange(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition cursor-pointer shadow-inner"
+                  className="w-full pl-9 pr-3 py-2.5 bg-bg-app border border-border-card rounded-xl text-xs font-bold text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition cursor-pointer shadow-inner"
                 >
                   <option value="">-- Belum Ditugaskan --</option>
                   {technicians.map((tech) => (
@@ -523,32 +522,32 @@ export default function TicketDetail({
             </div>
           </div>
         ) : (
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 space-y-4 shadow-sm">
-            <h3 className="text-sm font-black text-blue-800 uppercase tracking-wider flex items-center gap-2">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-6 space-y-4 shadow-sm">
+            <h3 className="text-sm font-black text-blue-500 uppercase tracking-wider flex items-center gap-2">
               <AlertTriangle className="h-4.5 w-4.5 text-blue-500" />
               Catatan Bantuan
             </h3>
-            <p className="text-xs text-blue-700 leading-relaxed font-medium">
+            <p className="text-xs text-blue-400 leading-relaxed font-medium">
               Anda sebagai pelapor (karyawan) hanya dapat melihat tanggapan publik. Status tiket akan diperbarui oleh tim IT Support setelah permasalahan Anda ditangani.
             </p>
           </div>
         )}
 
         {/* Current Assigned Staff Summary */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm text-xs">
-          <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block border-b border-slate-100 pb-2">Detail Petugas IT</span>
+        <div className="bg-bg-card border border-border-card rounded-2xl p-6 space-y-4 shadow-sm text-xs transition duration-200">
+          <span className="text-xs text-text-muted font-bold uppercase tracking-wider block border-b border-border-card pb-2">Detail Petugas IT</span>
           {ticket.assignee ? (
-            <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 shadow-sm">
-              <div className="h-9 w-9 rounded-full bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-600">
+            <div className="flex items-center gap-3 bg-bg-app p-3 rounded-xl border border-border-card shadow-sm">
+              <div className="h-9 w-9 rounded-full bg-brand-light border border-brand-primary/10 flex items-center justify-center text-brand-text">
                 <User className="h-4.5 w-4.5" />
               </div>
               <div>
-                <span className="font-bold text-slate-900 block">{ticket.assignee.full_name}</span>
-                <span className="text-[10px] font-medium text-slate-500">{ticket.assignee.email}</span>
+                <span className="font-bold text-text-main block">{ticket.assignee.full_name}</span>
+                <span className="text-[10px] font-medium text-text-muted">{ticket.assignee.email}</span>
               </div>
             </div>
           ) : (
-            <div className="p-4 bg-slate-50 text-center rounded-xl border border-slate-100 text-slate-500 font-medium italic">
+            <div className="p-4 bg-bg-app text-center rounded-xl border border-border-card text-text-muted font-medium italic">
               Tiket aduan belum ditugaskan ke petugas IT manapun.
             </div>
           )}

@@ -30,7 +30,7 @@ export default function DashboardLayoutClient({
   }, [pathname])
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 text-slate-900">
+    <div className="flex h-screen overflow-hidden bg-bg-app text-text-main">
       <Sidebar 
         role={userRole} 
         fullName={userFullName} 
@@ -48,7 +48,7 @@ export default function DashboardLayoutClient({
 
       <div className="flex-1 flex flex-col min-w-0 w-full h-full overflow-hidden">
         <Navbar email={userEmail} onOpenMenu={handleOpenMenu} />
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-slate-50 relative">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-bg-app relative">
           {children}
         </main>
       </div>

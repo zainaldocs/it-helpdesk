@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, startTransition } from 'react'
+import { useState, useEffect } from 'react'
 import { getDepartments, createDepartment, updateDepartment, deleteDepartment } from '@/app/actions/admin'
 import { PlusCircle, Edit2, Trash2, Loader2, Briefcase, X } from 'lucide-react'
 
@@ -95,12 +95,12 @@ export default function DepartmentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Kelola Departemen</h1>
-          <p className="text-sm text-slate-500 font-medium">Daftar departemen perusahaan untuk mengorganisir user dan aset.</p>
+          <h1 className="text-2xl font-bold text-text-main tracking-tight">Kelola Departemen</h1>
+          <p className="text-sm text-text-muted font-medium">Daftar departemen perusahaan untuk mengorganisir user dan aset.</p>
         </div>
         <button
           onClick={handleOpenCreate}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-sm font-bold shadow-md shadow-purple-600/15 cursor-pointer transition"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-sm font-bold shadow-md shadow-brand-primary/15 cursor-pointer transition"
         >
           <PlusCircle className="h-4.5 w-4.5" />
           Tambah Departemen
@@ -108,26 +108,26 @@ export default function DepartmentsPage() {
       </div>
 
       {/* Table / Grid */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-bg-card border border-border-card rounded-2xl shadow-sm overflow-hidden transition duration-200">
         {isLoading ? (
-          <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-400">
-            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+          <div className="p-16 flex flex-col items-center justify-center gap-3 text-text-muted">
+            <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
             <span className="text-sm font-medium">Memuat data departemen...</span>
           </div>
         ) : departments.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                <tr className="bg-bg-app border-b border-border-card text-text-muted text-xs font-bold uppercase tracking-wider">
                   <th className="px-6 py-4">Nama Departemen</th>
                   <th className="px-6 py-4 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
+              <tbody className="divide-y divide-border-card text-sm">
                 {currentDepts.map((dept) => (
-                  <tr key={dept.id} className="hover:bg-slate-50/50 transition">
-                    <td className="px-6 py-4.5 font-semibold text-slate-900 flex items-center gap-3">
-                      <div className="p-2 bg-purple-50 border border-purple-100 rounded-lg text-purple-600">
+                  <tr key={dept.id} className="hover:bg-bg-app/50 transition">
+                    <td className="px-6 py-4.5 font-semibold text-text-main flex items-center gap-3">
+                      <div className="p-2 bg-brand-light border border-brand-primary/10 rounded-lg text-brand-text">
                         <Briefcase className="h-4 w-4" />
                       </div>
                       {dept.name}
@@ -136,14 +136,14 @@ export default function DepartmentsPage() {
                       <div className="inline-flex gap-2">
                         <button
                           onClick={() => handleOpenEdit(dept)}
-                          className="p-2 text-slate-500 hover:text-purple-600 hover:bg-purple-50 border border-transparent hover:border-purple-100 rounded-lg transition cursor-pointer"
+                          className="p-2 text-text-muted hover:text-brand-text hover:bg-brand-light border border-transparent hover:border-brand-primary/10 rounded-lg transition cursor-pointer"
                           title="Edit"
                         >
                           <Edit2 className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(dept.id)}
-                          className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg transition cursor-pointer"
+                          className="p-2 text-text-muted hover:text-rose-600 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 rounded-lg transition cursor-pointer"
                           title="Hapus"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -157,22 +157,22 @@ export default function DepartmentsPage() {
             
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4.5 bg-slate-50 border-t border-slate-200 text-xs">
-                <div className="text-slate-500 font-semibold">
+              <div className="flex items-center justify-between px-6 py-4.5 bg-bg-app border-t border-border-card text-xs">
+                <div className="text-text-muted font-semibold">
                   Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, departments.length)} dari {departments.length} departemen
                 </div>
                 <div className="flex gap-2">
                   <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                    className="px-3.5 py-2 border border-border-card bg-bg-card hover:bg-bg-app text-text-main font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
                   >
                     Sebelumnya
                   </button>
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                    className="px-3.5 py-2 border border-border-card bg-bg-card hover:bg-bg-app text-text-main font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
                   >
                     Selanjutnya
                   </button>
@@ -182,12 +182,12 @@ export default function DepartmentsPage() {
           </div>
         ) : (
           <div className="p-16 text-center flex flex-col items-center justify-center gap-3">
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-slate-400">
+            <div className="p-4 bg-bg-app rounded-2xl border border-border-card text-text-muted">
               <Briefcase className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Belum Ada Departemen</h3>
-              <p className="text-xs text-slate-500 mt-1">Silakan tambahkan departemen baru menggunakan tombol di atas.</p>
+              <h3 className="text-sm font-bold text-text-main">Belum Ada Departemen</h3>
+              <p className="text-xs text-text-muted mt-1">Silakan tambahkan departemen baru menggunakan tombol di atas.</p>
             </div>
           </div>
         )}
@@ -203,14 +203,14 @@ export default function DepartmentsPage() {
           />
           
           {/* Modal Container */}
-          <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="font-bold text-slate-900">
+          <div className="bg-bg-card rounded-2xl border border-border-card w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4.5 border-b border-border-card bg-bg-app">
+              <h3 className="font-bold text-text-main">
                 {currentDept ? 'Edit Departemen' : 'Tambah Departemen'}
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                className="text-text-muted hover:text-text-main p-1.5 hover:bg-bg-app rounded-lg transition cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -218,13 +218,13 @@ export default function DepartmentsPage() {
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-xs text-red-600 rounded-xl font-medium">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-xs text-red-500 rounded-xl font-medium">
                   {error}
                 </div>
               )}
               
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                   Nama Departemen
                 </label>
                 <input
@@ -232,23 +232,23 @@ export default function DepartmentsPage() {
                   value={deptName}
                   onChange={(e) => setDeptName(e.target.value)}
                   placeholder="Contoh: Finance, Marketing, IT"
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 font-medium transition"
+                  className="w-full px-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary font-semibold transition"
                   required
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <div className="flex justify-end gap-3 pt-3 border-t border-border-card">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold cursor-pointer transition"
+                  className="px-4 py-2 text-text-muted hover:bg-bg-app border border-border-card rounded-xl text-xs font-bold cursor-pointer transition"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-600/15 cursor-pointer flex items-center gap-1.5 transition disabled:opacity-50"
+                  className="px-5 py-2 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-xs font-bold shadow-md shadow-brand-primary/15 cursor-pointer flex items-center gap-1.5 transition disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>

@@ -122,13 +122,13 @@ export default function AssetsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Active':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
       case 'Maintenance':
-        return 'bg-amber-50 text-amber-700 border-amber-200'
+        return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
       case 'Broken':
-        return 'bg-rose-50 text-rose-700 border-rose-200'
+        return 'bg-rose-500/10 text-rose-500 border-rose-500/20'
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200'
+        return 'bg-slate-500/10 text-slate-400 border-slate-500/20'
     }
   }
 
@@ -137,12 +137,12 @@ export default function AssetsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Kelola Aset Perangkat</h1>
-          <p className="text-sm text-slate-500 font-medium">Daftar semua inventaris aset IT yang dipetakan ke departemen perusahaan.</p>
+          <h1 className="text-2xl font-bold text-text-main tracking-tight">Kelola Aset Perangkat</h1>
+          <p className="text-sm text-text-muted font-medium">Daftar semua inventaris aset IT yang dipetakan ke departemen perusahaan.</p>
         </div>
         <button
           onClick={handleOpenCreate}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-sm font-bold shadow-md shadow-purple-600/15 cursor-pointer transition"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-sm font-bold shadow-md shadow-brand-primary/15 cursor-pointer transition"
         >
           <PlusCircle className="h-4.5 w-4.5" />
           Tambah Aset Baru
@@ -150,17 +150,17 @@ export default function AssetsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-bg-card border border-border-card rounded-2xl shadow-sm overflow-hidden transition duration-200">
         {isLoading ? (
-          <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-400">
-            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+          <div className="p-16 flex flex-col items-center justify-center gap-3 text-text-muted">
+            <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
             <span className="text-sm font-medium">Memuat data aset...</span>
           </div>
         ) : assets.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                <tr className="bg-bg-app border-b border-border-card text-text-muted text-xs font-bold uppercase tracking-wider">
                   <th className="px-6 py-4">Kode Aset</th>
                   <th className="px-6 py-4">Nama Perangkat & Spesifikasi</th>
                   <th className="px-6 py-4">Tipe</th>
@@ -169,28 +169,28 @@ export default function AssetsPage() {
                   <th className="px-6 py-4 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
+              <tbody className="divide-y divide-border-card text-sm">
                 {currentAssets.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-slate-50/50 transition">
-                    <td className="px-6 py-4 font-mono font-bold text-slate-600">{asset.asset_code}</td>
+                  <tr key={asset.id} className="hover:bg-bg-app/50 transition">
+                    <td className="px-6 py-4 font-mono font-bold text-text-muted">{asset.asset_code}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-purple-50 border border-purple-100 rounded-lg text-purple-600 flex-shrink-0">
+                        <div className="p-2 bg-brand-light border border-brand-primary/10 rounded-lg text-brand-text flex-shrink-0">
                           <Laptop className="h-4 w-4" />
                         </div>
                         <div className="min-w-0">
-                          <span className="font-semibold text-slate-900 block truncate max-w-xs">{asset.name}</span>
+                          <span className="font-semibold text-text-main block truncate max-w-xs">{asset.name}</span>
                           {asset.specifications && (
-                            <span className="text-[10px] text-slate-400 font-medium block truncate max-w-xs" title={asset.specifications}>
+                            <span className="text-[10px] text-text-muted font-medium block truncate max-w-xs" title={asset.specifications}>
                               {asset.specifications}
                             </span>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-600 font-medium">{asset.type}</td>
-                    <td className="px-6 py-4 text-slate-900 font-semibold">
-                      {asset.department ? asset.department.name : <span className="text-slate-400 font-normal italic">Tidak ada</span>}
+                    <td className="px-6 py-4 text-text-muted font-medium">{asset.type}</td>
+                    <td className="px-6 py-4 text-text-main font-semibold">
+                      {asset.department ? asset.department.name : <span className="text-text-muted font-normal italic">Tidak ada</span>}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${getStatusBadge(asset.status)}`}>
@@ -201,14 +201,14 @@ export default function AssetsPage() {
                       <div className="inline-flex gap-2">
                         <button
                           onClick={() => handleOpenEdit(asset)}
-                          className="p-2 text-slate-500 hover:text-purple-600 hover:bg-purple-50 border border-transparent hover:border-purple-100 rounded-lg transition cursor-pointer"
+                          className="p-2 text-text-muted hover:text-brand-text hover:bg-brand-light border border-transparent hover:border-brand-primary/10 rounded-lg transition cursor-pointer"
                           title="Edit"
                         >
                           <Edit2 className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(asset.id)}
-                          className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg transition cursor-pointer"
+                          className="p-2 text-text-muted hover:text-rose-600 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 rounded-lg transition cursor-pointer"
                           title="Hapus"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -222,22 +222,22 @@ export default function AssetsPage() {
             
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4.5 bg-slate-50 border-t border-slate-200 text-xs">
-                <div className="text-slate-500 font-semibold">
+              <div className="flex items-center justify-between px-6 py-4.5 bg-bg-app border-t border-border-card text-xs">
+                <div className="text-text-muted font-semibold">
                   Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, assets.length)} dari {assets.length} aset
                 </div>
                 <div className="flex gap-2">
                   <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                    className="px-3.5 py-2 border border-border-card bg-bg-card hover:bg-bg-app text-text-main font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
                   >
                     Sebelumnya
                   </button>
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                    className="px-3.5 py-2 border border-border-card bg-bg-card hover:bg-bg-app text-text-main font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
                   >
                     Selanjutnya
                   </button>
@@ -247,12 +247,12 @@ export default function AssetsPage() {
           </div>
         ) : (
           <div className="p-16 text-center flex flex-col items-center justify-center gap-3">
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-slate-400">
+            <div className="p-4 bg-bg-app rounded-2xl border border-border-card text-text-muted">
               <Laptop className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Belum Ada Aset Perangkat</h3>
-              <p className="text-xs text-slate-500 mt-1">Silakan daftarkan aset IT baru menggunakan tombol di atas.</p>
+              <h3 className="text-sm font-bold text-text-main">Belum Ada Aset Perangkat</h3>
+              <p className="text-xs text-text-muted mt-1">Silakan daftarkan aset IT baru menggunakan tombol di atas.</p>
             </div>
           </div>
         )}
@@ -266,29 +266,29 @@ export default function AssetsPage() {
             onClick={() => setIsModalOpen(false)}
           />
           
-          <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="font-bold text-slate-900">
+          <div className="bg-bg-card rounded-2xl border border-border-card w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4.5 border-b border-border-card bg-bg-app">
+              <h3 className="font-bold text-text-main">
                 {currentAsset ? 'Edit Aset' : 'Tambah Aset Baru'}
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                className="text-text-muted hover:text-text-main p-1.5 hover:bg-bg-app rounded-lg transition cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-xs text-red-600 rounded-xl font-medium">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-xs text-red-500 rounded-xl font-medium">
                   {error}
                 </div>
               )}
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="assetCodeInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  <label htmlFor="assetCodeInput" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                     Kode Aset
                   </label>
                   <input
@@ -297,19 +297,19 @@ export default function AssetsPage() {
                     value={assetCode}
                     onChange={(e) => setAssetCode(e.target.value)}
                     placeholder="PC-FIN-001"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-900 uppercase focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                    className="w-full px-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm font-mono font-bold text-text-main uppercase focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition"
                     required
                   />
                 </div>
                 <div>
-                  <label htmlFor="assetTypeSelect" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  <label htmlFor="assetTypeSelect" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                     Tipe Perangkat
                   </label>
                   <select
                     id="assetTypeSelect"
                     value={assetType}
                     onChange={(e) => setAssetType(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                    className="w-full px-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm font-semibold text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition"
                   >
                     <option value="PC">PC Desktop</option>
                     <option value="Laptop">Laptop</option>
@@ -322,7 +322,7 @@ export default function AssetsPage() {
               </div>
 
               <div>
-                <label htmlFor="assetNameInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                <label htmlFor="assetNameInput" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                   Nama Perangkat
                 </label>
                 <input
@@ -331,13 +331,13 @@ export default function AssetsPage() {
                   value={assetName}
                   onChange={(e) => setAssetName(e.target.value)}
                   placeholder="Contoh: ThinkCentre M70, MacBook Air"
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                  className="w-full px-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm text-text-main font-semibold focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="specificationsInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                <label htmlFor="specificationsInput" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                   Spesifikasi Teknis
                 </label>
                 <textarea
@@ -346,19 +346,19 @@ export default function AssetsPage() {
                   onChange={(e) => setSpecifications(e.target.value)}
                   placeholder="Contoh: Intel i5, RAM 16GB, SSD 512GB"
                   rows={2}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition resize-none font-medium"
+                  className="w-full px-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition resize-none font-medium"
                 />
               </div>
 
               <div>
-                <label htmlFor="departmentSelect" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                <label htmlFor="departmentSelect" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                   Departemen
                 </label>
                 <select
                   id="departmentSelect"
                   value={selectedDeptId}
                   onChange={(e) => setSelectedDeptId(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                  className="w-full px-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm font-semibold text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition"
                 >
                   <option value="">-- Tanpa Departemen / Umum --</option>
                   {departments.map((d) => (
@@ -368,7 +368,7 @@ export default function AssetsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                   Status Operasional
                 </label>
                 <div className="flex gap-2">
@@ -380,11 +380,11 @@ export default function AssetsPage() {
                       className={`flex-1 py-2 px-3 border rounded-xl text-xs font-bold transition cursor-pointer ${
                         assetStatus === status
                           ? status === 'Active'
-                            ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
+                            ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500'
                             : status === 'Maintenance'
-                            ? 'bg-amber-50 border-amber-500 text-amber-700'
-                            : 'bg-rose-50 border-rose-500 text-rose-700'
-                          : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                            ? 'bg-amber-500/10 border-amber-500 text-amber-500'
+                            : 'bg-rose-500/10 border-rose-500 text-rose-500'
+                          : 'bg-bg-app border border-border-card text-text-muted hover:bg-bg-app'
                       }`}
                     >
                       {status}
@@ -393,18 +393,18 @@ export default function AssetsPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <div className="flex justify-end gap-3 pt-3 border-t border-border-card">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold cursor-pointer transition"
+                  className="px-4 py-2 text-text-muted hover:bg-bg-app border border-border-card rounded-xl text-xs font-bold cursor-pointer transition"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-600/15 cursor-pointer flex items-center gap-1.5 transition disabled:opacity-50"
+                  className="px-5 py-2 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-xs font-bold shadow-md shadow-brand-primary/15 cursor-pointer flex items-center gap-1.5 transition disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>

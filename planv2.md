@@ -1,59 +1,65 @@
-# IT Helpdesk Ticketing System - Implementation Plan V3 (User CRUD & Asset Specifications)
+# IT Helpdesk Ticketing System - Implementation Plan V4 (Dynamic Theme Settings)
 
 ## Goal Description
 
-Menambahkan fitur administrasi tambahan untuk tim IT Admin:
-1. **User CRUD Lengkap (Create & Delete)**: Mengizinkan Admin untuk membuat user baru langsung dari panel admin dan menghapus user (termasuk dari data auth Supabase).
-2. **Spesifikasi Aset**: Menambahkan kolom spesifikasi (detail teknis) pada aset perangkat sehingga tim IT dapat melihat spesifikasi teknis komputer/laptop yang bermasalah.
+Menambahkan fitur **Pengaturan Tema** pada Panel Admin yang mengizinkan Admin untuk memilih tema aplikasi global. Pilihan tema meliputi:
+- `light-purple` (Light Mode - Ungu / Default saat ini)
+- `light-red` (Light Mode - Merah)
+- `light-blue` (Light Mode - Biru)
+- `light-green` (Light Mode - Hijau)
+- `light-orange` (Light Mode - Oranye)
+- `dark` (Dark Mode - Gelap dengan aksen elegan)
 
-## User Review Required
-
-> [!IMPORTANT]
-> **Kredensial Baru di `.env.local`**:
-> Untuk mengizinkan Admin membuat dan menghapus user dari sistem autentikasi Supabase, Next.js backend memerlukan kunci admin `service_role` (karena kunci biasa/anon tidak memiliki akses mengubah data user lain).
-> Anda perlu menambahkan baris berikut di `.env.local` Anda:
-> ```env
-> SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
-> ```
-> *Catatan: Jangan pernah mempublikasikan kunci `service_role` ini ke repositori publik (seperti GitHub) karena kunci ini memotong semua aturan keamanan RLS.*
+Ketika tema dipilih, nuansa warna aplikasi (accent color, background, card, border, text) akan berubah secara instan secara dinamis.
 
 ## Proposed Changes
 
-### Database Schema (Supabase)
+### 1. Global CSS & Theme System
 
-#### [MODIFY] `assets` table
-Menambahkan kolom baru untuk menyimpan spesifikasi teknis perangkat.
-- Tambah kolom: `specifications` TEXT (opsional)
+#### [MODIFY] [globals.css](file:///c:/laragon/www/it-helpdesk/src/app/globals.css)
+- Menghapus warna hardcoded body.
+- Mendefinisikan CSS Variables untuk token desain aplikasi di `:root` (default `light-purple`) dan override-nya di selector `[data-theme='...']`.
+- CSS Variables yang didefinisikan:
+  - `--theme-primary` & `--theme-primary-hover` (warna aksen utama aplikasi)
+  - `--theme-primary-light` (warna latar belakang aksen halus, misal hover menu)
+  - `--theme-primary-text` (warna teks aksen)
+  - `--bg-app` & `--bg-card` (warna latar halaman & kartu)
+  - `--border-card` (warna garis tepi kartu/tabel)
+  - `--text-main` & `--text-muted` (warna teks utama & redup)
+- Mendaftarkan variabel tersebut ke `@theme` Tailwind v4 agar kelas utility seperti `bg-brand-primary`, `bg-bg-app`, `text-text-main`, dll. dapat digunakan secara global.
 
-### Frontend (Next.js App Router) & Server Actions
+### 2. Layout & Pencegahan Flash Render (FOUC)
 
-#### [MODIFY] [admin.ts](file:///c:/laragon/www/it-helpdesk/src/app/actions/admin.ts)
-1. **Buat Klien Admin Supabase**: Membuat fungsi pembantu `createAdminClient()` yang menggunakan `SUPABASE_SERVICE_ROLE_KEY` untuk mengakses API administrasi auth Supabase.
-2. **Tambah `createUser` Action**:
-   - Menerima `email`, `password`, `fullName`, `role`, dan `department_id`.
-   - Menggunakan `adminClient.auth.admin.createUser` untuk membuat akun dengan status email terverifikasi (`email_confirm: true`).
-   - Melakukan update pada profil baru untuk mengatur `department_id` dan `account_status: 'active'`.
-3. **Tambah `deleteUser` Action**:
-   - Menerima `userId`.
-   - Menggunakan `adminClient.auth.admin.deleteUser` untuk menghapus akun. Ini akan menghapus data di auth.users, dan akan otomatis menghapus profil di tabel `profiles` secara *cascade*.
+#### [MODIFY] [layout.tsx](file:///c:/laragon/www/it-helpdesk/src/app/layout.tsx)
+- Menambahkan skrip inline kecil di bagian `<head>` untuk membaca tema dari `localStorage` dan menerapkannya sebagai atribut `data-theme` pada elemen `<html>` saat halaman pertama kali dimuat. Hal ini mencegah terjadinya *flash* warna putih ketika mengakses aplikasi dalam tema gelap.
 
-#### [MODIFY] [admin/users/page.tsx](file:///c:/laragon/www/it-helpdesk/src/app/(dashboard)/admin/users/page.tsx)
-- Tambah tombol **"Tambah User Baru"** yang akan membuka modal form pembuatan user.
-- Form berisi input: Nama Lengkap, Email, Password, Peran (Role), dan Departemen.
-- Tambah tombol **"Hapus"** (ikon Trash) di samping tombol Edit pada tabel pengguna untuk menghapus akun.
+#### [MODIFY] [DashboardLayoutClient.tsx](file:///c:/laragon/www/it-helpdesk/src/components/layout/DashboardLayoutClient.tsx)
+- Mengubah kelas-kelas CSS layout utama agar menggunakan variabel dinamis (misal: `bg-bg-app` menggantikan `bg-slate-50`, `text-text-main` menggantikan `text-slate-900`).
 
-#### [MODIFY] [admin/assets/page.tsx](file:///c:/laragon/www/it-helpdesk/src/app/(dashboard)/admin/assets/page.tsx)
-- Modifikasi modal form aset dengan menambahkan textarea **"Spesifikasi Perangkat"**.
-- Menampilkan spesifikasi perangkat di dalam detail/tabel aset.
+### 3. Modifikasi Komponen & Halaman Pendukung (Penerapan CSS Variables)
+Untuk memastikan tema bekerja penuh, kita akan mengganti kelas Tailwind ungu statis dengan kelas token dinamis pada komponen-komponen berikut:
+- [SidebarLink & Sidebar](file:///c:/laragon/www/it-helpdesk/src/components/layout/Sidebar.tsx) (Ganti warna aktif menu dengan `bg-brand-light` dan `text-brand-text`).
+- [Navbar](file:///c:/laragon/www/it-helpdesk/src/components/layout/Navbar.tsx) (Sesuaikan warna background navbar dengan `bg-bg-card` dan border `border-border-card`).
+- Tombol Utama di Form Tiket dan Tabel (Ganti `bg-purple-600 hover:bg-purple-500` dengan `bg-brand-primary hover:bg-brand-hover`).
 
-#### [MODIFY] [TicketDetail.tsx](file:///c:/laragon/www/it-helpdesk/src/components/tickets/TicketDetail.tsx)
-- Menampilkan spesifikasi aset perangkat pada detail tiket jika user menyertakan aset saat membuat tiket aduan.
+### 4. Admin Settings Page (UI Pilihan Tema)
+
+#### [NEW] [admin/settings/page.tsx](file:///c:/laragon/www/it-helpdesk/src/app/(dashboard)/admin/settings/page.tsx)
+- Membuat halaman baru yang menampilkan daftar tema berupa card visual.
+- Setiap tema card menampilkan lingkaran palet warna representatif (Aksen utama, warna background, warna card).
+- Ketika Admin memilih salah satu tema, aplikasi akan:
+  1. Menulis ke `localStorage.setItem('it-helpdesk-theme', theme)`.
+  2. Mengeksekusi `document.documentElement.setAttribute('data-theme', theme)` sehingga UI berubah seketika tanpa perlu reload.
+
+#### [MODIFY] [Sidebar.tsx](file:///c:/laragon/www/it-helpdesk/src/components/layout/Sidebar.tsx)
+- Menambahkan tautan **"Pengaturan Aplikasi"** dengan ikon `Settings` pada panel admin di sidebar.
+
+---
 
 ## Verification Plan
 
 ### Manual Verification
-1. Tambahkan `SUPABASE_SERVICE_ROLE_KEY` ke `.env.local`.
-2. Login sebagai Admin -> Buka **Kelola User** -> Klik **Tambah User Baru** -> Isi form.
-3. Login menggunakan akun baru yang dibuat Admin untuk memastikan akun aktif dan bisa langsung login tanpa approve manual.
-4. Login sebagai Admin -> Buka **Kelola Aset** -> Buat/Edit aset -> Isi kolom **Spesifikasi** (misal: `Intel i5, RAM 16GB, SSD 512GB`).
-5. Buat tiket aduan menggunakan aset tersebut -> Cek detail tiket, pastikan tim IT dapat membaca spesifikasinya langsung di detail tiket.
+1. Buka halaman **Admin Panel** -> **Pengaturan Aplikasi**.
+2. Pilih tema **Light Merah** -> Nuansa ungu di sidebar, tombol, dan link harus berubah menjadi merah secara instan.
+3. Pilih tema **Dark Mode** -> Seluruh background aplikasi berubah menjadi gelap (`#0b0f19`), teks menjadi putih, dan card menjadi gelap.
+4. Refresh halaman -> Pastikan tema yang dipilih tetap aktif dan tidak terjadi *flash* (kedipan putih) sebelum halaman dimuat sempurna.

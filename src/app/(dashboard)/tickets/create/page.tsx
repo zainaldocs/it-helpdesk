@@ -1,51 +1,45 @@
 'use client'
 
-import { useActionState, startTransition, useState, useEffect } from 'react'
-import { createTicket, getMyDepartmentAssets, type CreateTicketState } from '@/app/actions/tickets'
+import { useState, useActionState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
-  Terminal, 
-  Loader2, 
-  ArrowLeft, 
-  FileText, 
-  HelpCircle,
-  AlertCircle,
-  Paperclip,
-  Laptop
-} from 'lucide-react'
-
-const initialState: CreateTicketState = {}
+import { createTicket } from '@/app/actions/tickets'
+import { getMyDepartmentAssets } from '@/app/actions/tickets'
+import { ArrowLeft, FileText, Loader2, AlertCircle, Paperclip, Laptop } from 'lucide-react'
 
 export default function CreateTicketPage() {
-  const [state, formAction, isPending] = useActionState(createTicket, initialState)
+  const [state, formAction, isPending] = useActionState(createTicket, null)
   const [attachmentUrl, setAttachmentUrl] = useState('')
   const [assets, setAssets] = useState<any[]>([])
   const [isLoadingAssets, setIsLoadingAssets] = useState(true)
 
   useEffect(() => {
-    async function fetchAssets() {
-      const data = await getMyDepartmentAssets()
-      setAssets(data)
-      setIsLoadingAssets(false)
+    async function loadAssets() {
+      try {
+        const myAssets = await getMyDepartmentAssets()
+        setAssets(myAssets)
+      } catch (err) {
+        console.error('Gagal mengambil aset:', err)
+      } finally {
+        setIsLoadingAssets(false)
+      }
     }
-    fetchAssets()
+    loadAssets()
   }, [])
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const formData = new FormData(event.currentTarget)
-    startTransition(() => {
-      formAction(formData)
-    })
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (isPending) {
+      e.preventDefault()
+      return
+    }
   }
 
   // Categories
   const categories = [
-    { value: 'Software', label: 'Aplikasi / Software (OS, Office, dsb)' },
-    { value: 'Hardware', label: 'Perangkat Keras / Hardware (PC, Laptop, Printer)' },
-    { value: 'Network', label: 'Jaringan & Internet (Wi-Fi, LAN, VPN)' },
-    { value: 'Account/Access', label: 'Akun & Akses (Email, Active Directory, ERP)' },
-    { value: 'Other', label: 'Lainnya / Pertanyaan Umum' },
+    { value: 'Hardware', label: 'Perangkat Keras (Hardware)' },
+    { value: 'Software', label: 'Perangkat Lunak (Software)' },
+    { value: 'Network', label: 'Masalah Jaringan (Network)' },
+    { value: 'Access/Auth', label: 'Akses & Hak Akses (Access)' },
+    { value: 'Lainnya', label: 'Lain-lain' },
   ]
 
   // Urgencies
@@ -61,27 +55,27 @@ export default function CreateTicketPage() {
       {/* Back Button */}
       <Link 
         href="/tickets" 
-        className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-purple-600 transition"
+        className="inline-flex items-center gap-2 text-xs font-bold text-text-muted hover:text-brand-primary transition"
       >
         <ArrowLeft className="h-4 w-4" />
         Kembali ke Daftar Tiket
       </Link>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
+      <div className="bg-bg-card border border-border-card rounded-2xl p-6 md:p-8 shadow-sm transition duration-200">
         <div className="mb-6">
-          <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <div className="p-2 bg-purple-50 border border-purple-100 text-purple-600 rounded-lg shadow-sm">
+          <h1 className="text-xl font-black text-text-main tracking-tight flex items-center gap-2.5">
+            <div className="p-2 bg-brand-light border border-brand-primary/10 text-brand-text rounded-lg shadow-sm">
               <FileText className="h-5 w-5" />
             </div>
             Buat Tiket Aduan Baru
           </h1>
-          <p className="text-sm text-slate-500 mt-1.5 font-medium">
+          <p className="text-sm text-text-muted mt-1.5 font-medium">
             Jelaskan permasalahan IT Anda dengan detail agar tim Technician dapat segera menanganinya.
           </p>
         </div>
 
         {state?.error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 flex items-start gap-2.5 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-500 flex items-start gap-2.5 animate-in fade-in slide-in-from-top-1 duration-200">
             <AlertCircle className="h-5 w-5 shrink-0" />
             <div>
               <span className="font-bold block">Gagal mengirim aduan:</span>
@@ -90,10 +84,10 @@ export default function CreateTicketPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form action={formAction} onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            <label htmlFor="title" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
               Judul Masalah / Aduan
             </label>
             <input
@@ -102,17 +96,17 @@ export default function CreateTicketPage() {
               id="title"
               required
               placeholder="Contoh: Printer lantai 2 tidak bisa mencetak dokumen"
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition duration-200 shadow-inner"
+              className="w-full px-4 py-3 bg-bg-app border border-border-card rounded-xl text-sm text-text-main placeholder-text-muted/50 font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition duration-200 shadow-inner"
             />
           </div>
 
           {/* Asset Selection */}
           <div>
-            <label htmlFor="assetId" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            <label htmlFor="assetId" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
               Pilih Aset Bermasalah
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-text-muted">
                 <Laptop className="h-4.5 w-4.5" />
               </span>
               <select
@@ -120,7 +114,7 @@ export default function CreateTicketPage() {
                 id="assetId"
                 required
                 defaultValue=""
-                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition duration-200 cursor-pointer shadow-inner font-medium"
+                className="w-full pl-11 pr-4 py-3 bg-bg-app border border-border-card rounded-xl text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition duration-200 cursor-pointer shadow-inner font-medium"
               >
                 <option value="" disabled>-- Pilih Aset Perangkat --</option>
                 {assets.map((asset) => (
@@ -134,7 +128,7 @@ export default function CreateTicketPage() {
               </select>
             </div>
             {assets.length === 0 && !isLoadingAssets && (
-              <p className="text-[10px] text-amber-600 mt-1.5 font-medium">
+              <p className="text-[10px] text-amber-500 mt-1.5 font-medium">
                 Catatan: Akun Anda mungkin belum di-assign ke departemen atau departemen Anda belum memiliki aset terdaftar.
               </p>
             )}
@@ -144,7 +138,7 @@ export default function CreateTicketPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Category */}
             <div>
-              <label htmlFor="category" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+              <label htmlFor="category" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                 Kategori Masalah
               </label>
               <select
@@ -152,7 +146,7 @@ export default function CreateTicketPage() {
                 id="category"
                 required
                 defaultValue=""
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition duration-200 cursor-pointer shadow-inner font-medium"
+                className="w-full px-4 py-3 bg-bg-app border border-border-card rounded-xl text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition duration-200 cursor-pointer shadow-inner font-medium"
               >
                 <option value="" disabled>Pilih Kategori</option>
                 {categories.map((cat) => (
@@ -163,7 +157,7 @@ export default function CreateTicketPage() {
 
             {/* Urgency */}
             <div>
-              <label htmlFor="urgency" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+              <label htmlFor="urgency" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                 Tingkat Urgensi
               </label>
               <select
@@ -171,7 +165,7 @@ export default function CreateTicketPage() {
                 id="urgency"
                 required
                 defaultValue="low"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition duration-200 cursor-pointer shadow-inner font-medium"
+                className="w-full px-4 py-3 bg-bg-app border border-border-card rounded-xl text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition duration-200 cursor-pointer shadow-inner font-medium"
               >
                 {urgencies.map((urg) => (
                   <option key={urg.value} value={urg.value}>{urg.label}</option>
@@ -182,7 +176,7 @@ export default function CreateTicketPage() {
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            <label htmlFor="description" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
               Deskripsi Masalah secara Detail
             </label>
             <textarea
@@ -191,17 +185,17 @@ export default function CreateTicketPage() {
               required
               rows={5}
               placeholder="Deskripsikan secara detail langkah kejadian, error message (jika ada), dan tindakan yang sudah Anda lakukan..."
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition duration-200 resize-y shadow-inner"
+              className="w-full px-4 py-3 bg-bg-app border border-border-card rounded-xl text-sm text-text-main placeholder-text-muted/50 font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition duration-200 resize-y shadow-inner"
             />
           </div>
 
           {/* Attachment URL */}
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
               Lampiran Pendukung (Opsional)
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-text-muted">
                 <Paperclip className="h-4.5 w-4.5" />
               </span>
               <input
@@ -210,26 +204,26 @@ export default function CreateTicketPage() {
                 placeholder="https://imgur.com/screenshot.jpg (URL Gambar / File lampiran)"
                 value={attachmentUrl}
                 onChange={(e) => setAttachmentUrl(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition duration-200 shadow-inner"
+                className="w-full pl-11 pr-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm text-text-main placeholder-text-muted/50 font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition duration-200 shadow-inner"
               />
             </div>
-            <p className="text-[10px] text-slate-500 mt-1.5 leading-relaxed font-medium">
+            <p className="text-[10px] text-text-muted mt-1.5 leading-relaxed font-medium">
               Masukkan tautan/URL tangkapan layar (screenshot) atau berkas pendukung Anda.
             </p>
           </div>
 
           {/* Submit and Cancel Button */}
-          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4 mt-2 justify-end border-t border-slate-100">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4 mt-2 justify-end border-t border-border-card">
             <Link
               href="/tickets"
-              className="px-5 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-900 text-slate-600 rounded-xl text-sm font-bold transition text-center shadow-sm"
+              className="px-5 py-2.5 border border-border-card bg-bg-app hover:bg-bg-card hover:text-text-main text-text-muted rounded-xl text-sm font-bold transition text-center shadow-sm"
             >
               Batal
             </Link>
             <button
               type="submit"
               disabled={isPending}
-              className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white rounded-xl text-sm font-bold shadow-md shadow-purple-600/20 hover:shadow-purple-500/30 transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+              className="px-6 py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-sm font-bold shadow-md shadow-brand-primary/20 hover:shadow-brand-primary/30 transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
             >
               {isPending ? (
                 <>

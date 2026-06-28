@@ -153,13 +153,13 @@ export default function UsersAdminPage() {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'bg-rose-50 text-rose-700 border-rose-200'
+        return 'bg-rose-500/10 text-rose-500 border-rose-500/20'
       case 'technician':
-        return 'bg-blue-50 text-blue-700 border-blue-200'
+        return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
       case 'manager':
-        return 'bg-amber-50 text-amber-700 border-amber-200'
+        return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-200'
+        return 'bg-slate-500/10 text-slate-400 border-slate-500/20'
     }
   }
 
@@ -175,13 +175,13 @@ export default function UsersAdminPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
       case 'pending':
-        return 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse'
+        return 'bg-amber-500/10 text-amber-500 border-amber-500/20 animate-pulse'
       case 'suspended':
-        return 'bg-red-50 text-red-700 border-red-200'
+        return 'bg-red-500/10 text-red-500 border-red-500/20'
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200'
+        return 'bg-slate-500/10 text-slate-400 border-slate-500/20'
     }
   }
 
@@ -190,12 +190,12 @@ export default function UsersAdminPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Kelola Pengguna (Users)</h1>
-          <p className="text-sm text-slate-500 font-medium">Setujui registrasi karyawan baru, tambahkan user, atau hapus dan atur departemen serta hak akses.</p>
+          <h1 className="text-2xl font-bold text-text-main tracking-tight">Kelola Pengguna (Users)</h1>
+          <p className="text-sm text-text-muted font-medium">Setujui registrasi karyawan baru, tambahkan user, atau hapus dan atur departemen serta hak akses.</p>
         </div>
         <button
           onClick={handleOpenCreate}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-sm font-bold shadow-md shadow-purple-600/15 cursor-pointer transition"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-sm font-bold shadow-md shadow-brand-primary/15 cursor-pointer transition"
         >
           <PlusCircle className="h-4.5 w-4.5" />
           Tambah User Baru
@@ -205,7 +205,7 @@ export default function UsersAdminPage() {
       {/* Filter Tabs & Table */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
-          <Filter className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
+          <Filter className="h-4 w-4 text-text-muted mr-2 flex-shrink-0" />
           {[
             { id: 'all', label: 'Semua Pengguna' },
             { id: 'pending', label: 'Menunggu Persetujuan' },
@@ -217,8 +217,8 @@ export default function UsersAdminPage() {
               onClick={() => setFilterStatus(tab.id)}
               className={`px-4.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer border whitespace-nowrap ${
                 filterStatus === tab.id
-                  ? 'bg-purple-600 border-purple-600 text-white shadow-md shadow-purple-600/10'
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  ? 'bg-brand-primary border-brand-primary text-white shadow-md shadow-brand-primary/10'
+                  : 'bg-bg-card border-border-card text-text-muted hover:bg-bg-app'
               }`}
             >
               {tab.label}
@@ -231,10 +231,10 @@ export default function UsersAdminPage() {
           ))}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-bg-card border border-border-card rounded-2xl shadow-sm overflow-hidden transition duration-200">
           {isLoading ? (
-            <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-400">
-              <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+            <div className="p-16 flex flex-col items-center justify-center gap-3 text-text-muted">
+              <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
               <span className="text-sm font-medium">Memuat data pengguna...</span>
             </div>
           ) : filteredUsers.length > 0 ? (
@@ -242,7 +242,7 @@ export default function UsersAdminPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                    <tr className="bg-bg-app border-b border-border-card text-text-muted text-xs font-bold uppercase tracking-wider">
                       <th className="px-6 py-4">Nama & Email</th>
                       <th className="px-6 py-4">Peran (Role)</th>
                       <th className="px-6 py-4">Departemen</th>
@@ -250,17 +250,17 @@ export default function UsersAdminPage() {
                       <th className="px-6 py-4 text-right">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm">
+                  <tbody className="divide-y divide-border-card text-sm">
                     {currentUsers.map((u) => (
-                      <tr key={u.id} className="hover:bg-slate-50/50 transition">
+                      <tr key={u.id} className="hover:bg-bg-app/50 transition">
                         <td className="px-6 py-4.5">
                           <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold">
+                            <div className="h-9 w-9 rounded-full bg-bg-app border border-border-card flex items-center justify-center text-text-muted font-bold">
                               {u.full_name.charAt(0)}
                             </div>
                             <div>
-                              <span className="font-semibold text-slate-900 block">{u.full_name}</span>
-                              <span className="text-xs text-slate-400 font-medium font-mono">{u.email}</span>
+                              <span className="font-semibold text-text-main block">{u.full_name}</span>
+                              <span className="text-xs text-text-muted font-medium font-mono">{u.email}</span>
                             </div>
                           </div>
                         </td>
@@ -269,14 +269,14 @@ export default function UsersAdminPage() {
                             {getRoleLabel(u.role)}
                           </span>
                         </td>
-                        <td className="px-6 py-4.5 font-semibold text-slate-900">
+                        <td className="px-6 py-4.5 font-semibold text-text-main">
                           {u.department ? (
                             <span className="flex items-center gap-1.5">
-                              <Briefcase className="h-3.5 w-3.5 text-slate-400" />
+                              <Briefcase className="h-3.5 w-3.5 text-text-muted" />
                               {u.department.name}
                             </span>
                           ) : (
-                            <span className="text-slate-400 font-normal italic">Belum ditentukan</span>
+                            <span className="text-text-muted font-normal italic">Belum ditentukan</span>
                           )}
                         </td>
                         <td className="px-6 py-4.5">
@@ -298,14 +298,14 @@ export default function UsersAdminPage() {
                             )}
                             <button
                               onClick={() => handleOpenEdit(u)}
-                              className="p-2 text-slate-500 hover:text-purple-600 hover:bg-purple-50 border border-transparent hover:border-purple-100 rounded-lg transition cursor-pointer"
+                              className="p-2 text-text-muted hover:text-brand-text hover:bg-brand-light border border-transparent hover:border-brand-primary/10 rounded-lg transition cursor-pointer"
                               title="Edit User"
                             >
                               <Edit2 className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(u.id, u.full_name)}
-                              className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg transition cursor-pointer"
+                              className="p-2 text-text-muted hover:text-rose-600 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 rounded-lg transition cursor-pointer"
                               title="Hapus User"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -320,22 +320,22 @@ export default function UsersAdminPage() {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200 text-xs">
-                  <div className="text-slate-500 font-semibold">
+                <div className="flex items-center justify-between px-6 py-4 bg-bg-app border-t border-border-card text-xs">
+                  <div className="text-text-muted font-semibold">
                     Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredUsers.length)} dari {filteredUsers.length} pengguna
                   </div>
                   <div className="flex gap-2">
                     <button
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                      className="px-3.5 py-2 border border-border-card bg-bg-card hover:bg-bg-app text-text-main font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
                     >
                       Sebelumnya
                     </button>
                     <button
                       disabled={currentPage === totalPages}
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                      className="px-3.5 py-2 border border-border-card bg-bg-card hover:bg-bg-app text-text-main font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
                     >
                       Selanjutnya
                     </button>
@@ -345,12 +345,12 @@ export default function UsersAdminPage() {
             </>
           ) : (
             <div className="p-16 text-center flex flex-col items-center justify-center gap-3">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-slate-400">
+              <div className="p-4 bg-bg-app rounded-2xl border border-border-card text-text-muted">
                 <User className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Tidak Ada Pengguna</h3>
-                <p className="text-xs text-slate-500 mt-1">Tidak ada data pengguna yang sesuai dengan filter.</p>
+                <h3 className="text-sm font-bold text-text-main">Tidak Ada Pengguna</h3>
+                <p className="text-xs text-text-muted mt-1">Tidak ada data pengguna yang sesuai dengan filter.</p>
               </div>
             </div>
           )}
@@ -365,15 +365,15 @@ export default function UsersAdminPage() {
             onClick={() => setIsModalOpen(false)}
           />
           
-          <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <Shield className="h-4.5 w-4.5 text-purple-600" />
+          <div className="bg-bg-card rounded-2xl border border-border-card w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4.5 border-b border-border-card bg-bg-app">
+              <h3 className="font-bold text-text-main flex items-center gap-2">
+                <Shield className="h-4.5 w-4.5 text-brand-primary" />
                 {modalMode === 'create' ? 'Tambah User Baru' : 'Atur Akses User'}
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                className="text-text-muted hover:text-text-main p-1.5 hover:bg-bg-app rounded-lg transition cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -381,25 +381,25 @@ export default function UsersAdminPage() {
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-xs text-red-600 rounded-xl font-medium">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-xs text-red-500 rounded-xl font-medium">
                   {error}
                 </div>
               )}
 
               {modalMode === 'edit' ? (
-                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold">
+                <div className="p-3.5 bg-bg-app rounded-xl border border-border-card flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-full bg-brand-light flex items-center justify-center text-brand-text font-bold">
                     {fullName.charAt(0)}
                   </div>
                   <div>
-                    <span className="font-bold text-slate-900 text-sm block">{fullName}</span>
-                    <span className="text-xs text-slate-400 font-semibold font-mono">{email}</span>
+                    <span className="font-bold text-text-main text-sm block">{fullName}</span>
+                    <span className="text-xs text-text-muted font-semibold font-mono">{email}</span>
                   </div>
                 </div>
               ) : (
                 <>
                   <div>
-                    <label htmlFor="fullNameInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    <label htmlFor="fullNameInput" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                       Nama Lengkap
                     </label>
                     <input
@@ -408,13 +408,13 @@ export default function UsersAdminPage() {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="John Doe"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                      className="w-full px-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition"
                       required
                     />
                   </div>
                   
                   <div>
-                    <label htmlFor="emailInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    <label htmlFor="emailInput" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                       Email Perusahaan
                     </label>
                     <input
@@ -423,17 +423,17 @@ export default function UsersAdminPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="john.doe@company.com"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                      className="w-full px-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition"
                       required
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="passwordInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    <label htmlFor="passwordInput" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                       Kata Sandi (Password)
                     </label>
                     <div className="relative">
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-text-muted">
                         <Key className="h-4 w-4" />
                       </span>
                       <input
@@ -443,7 +443,7 @@ export default function UsersAdminPage() {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Min. 6 karakter"
                         minLength={6}
-                        className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                        className="w-full pl-11 pr-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition"
                         required
                       />
                     </div>
@@ -452,13 +452,13 @@ export default function UsersAdminPage() {
               )}
               
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                   Peran (Role)
                 </label>
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                  className="w-full px-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm font-semibold text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition"
                 >
                   <option value="end_user">End-User (Karyawan)</option>
                   <option value="manager">Manager Departemen</option>
@@ -468,13 +468,13 @@ export default function UsersAdminPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                   Departemen
                 </label>
                 <select
                   value={selectedDeptId}
                   onChange={(e) => setSelectedDeptId(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                  className="w-full px-4 py-2.5 bg-bg-app border border-border-card rounded-xl text-sm font-semibold text-text-main focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition"
                 >
                   <option value="">-- Belum Ditentukan / Tidak Ada --</option>
                   {departments.map((d) => (
@@ -485,7 +485,7 @@ export default function UsersAdminPage() {
 
               {modalMode === 'edit' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                     Status Akun
                   </label>
                   <div className="flex gap-2">
@@ -501,11 +501,11 @@ export default function UsersAdminPage() {
                         className={`flex-1 py-2 px-3 border rounded-xl text-xs font-bold transition cursor-pointer ${
                           selectedStatus === s.id
                             ? s.id === 'active'
-                              ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
+                              ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500'
                               : s.id === 'pending'
-                              ? 'bg-amber-50 border-amber-500 text-amber-700'
-                              : 'bg-rose-50 border-rose-500 text-rose-700'
-                            : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                              ? 'bg-amber-500/10 border-amber-500 text-amber-500'
+                              : 'bg-rose-500/10 border-rose-500 text-rose-500'
+                            : 'bg-bg-app border border-border-card text-text-muted hover:bg-bg-app'
                         }`}
                       >
                         {s.label}
@@ -515,18 +515,18 @@ export default function UsersAdminPage() {
                 </div>
               )}
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <div className="flex justify-end gap-3 pt-3 border-t border-border-card">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold cursor-pointer transition"
+                  className="px-4 py-2 text-text-muted hover:bg-bg-app border border-border-card rounded-xl text-xs font-bold cursor-pointer transition"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-600/15 cursor-pointer flex items-center gap-1.5 transition disabled:opacity-50"
+                  className="px-5 py-2 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-xs font-bold shadow-md shadow-brand-primary/15 cursor-pointer flex items-center gap-1.5 transition disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>
