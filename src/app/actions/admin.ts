@@ -237,7 +237,7 @@ export async function getAssets() {
   }
 }
 
-export async function createAsset(data: { asset_code: string; name: string; type: string; department_id: string | null; status: string; specifications?: string }) {
+export async function createAsset(data: { asset_code: string; name: string; type: string; department_id: string | null; status: string; specifications?: string | null }) {
   try {
     const supabase = await checkAdmin()
     const { error } = await supabase
@@ -253,7 +253,7 @@ export async function createAsset(data: { asset_code: string; name: string; type
   }
 }
 
-export async function updateAsset(id: string, data: { asset_code?: string; name?: string; type?: string; department_id?: string | null; status?: string; specifications?: string }) {
+export async function updateAsset(id: string, data: { asset_code?: string; name?: string; type?: string; department_id?: string | null; status?: string; specifications?: string | null }) {
   try {
     const supabase = await checkAdmin()
     const { error } = await supabase
