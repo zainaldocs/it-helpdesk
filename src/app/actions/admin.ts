@@ -1,7 +1,23 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+
+// Helper function to create an admin client that uses the service_role key to bypass RLS and edit auth.users
+function getAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !serviceKey) {
+    throw new Error('Supabase URL or Service Role Key is missing in environment variables')
+  }
+  return createSupabaseClient(url, serviceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 async function checkAdmin() {
   const supabase = await createClient()
@@ -37,6 +53,63 @@ export async function getUsers() {
   } catch (error: any) {
     console.error('getUsers error:', error)
     return []
+  }
+}
+
+export async function createUser(data: { fullName: string; email: string; password: string; role: string; department_id: string | null }) {
+  try {
+    await checkAdmin()
+    const adminClient = getAdminClient()
+    
+    // Create the user in Supabase Auth
+    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { 
+        full_name: data.fullName,
+        role: data.role
+      }
+    })
+    
+    if (authError) throw authError
+    if (!authData.user) throw new Error('Gagal membuat user autentikasi')
+    
+    // Update the newly created profile with department_id and status 'active'
+    // (Note: profiles is automatically created by the public.handle_new_user trigger)
+    const { error: profileError } = await adminClient
+      .from('profiles')
+      .update({
+        department_id: data.department_id,
+        account_status: 'active'
+      })
+      .eq('id', authData.user.id)
+      
+    if (profileError) throw profileError
+    
+    revalidatePath('/admin/users')
+    return { success: true }
+  } catch (error: any) {
+    console.error('createUser error:', error)
+    return { error: error.message }
+  }
+}
+
+export async function deleteUser(userId: string) {
+  try {
+    await checkAdmin()
+    const adminClient = getAdminClient()
+    
+    // Delete the user from Supabase Auth
+    // This will cascade-delete their profile automatically because of the CASCADE foreign key
+    const { error } = await adminClient.auth.admin.deleteUser(userId)
+    if (error) throw error
+    
+    revalidatePath('/admin/users')
+    return { success: true }
+  } catch (error: any) {
+    console.error('deleteUser error:', error)
+    return { error: error.message }
   }
 }
 
@@ -164,7 +237,7 @@ export async function getAssets() {
   }
 }
 
-export async function createAsset(data: { asset_code: string; name: string; type: string; department_id: string | null; status: string }) {
+export async function createAsset(data: { asset_code: string; name: string; type: string; department_id: string | null; status: string; specifications?: string }) {
   try {
     const supabase = await checkAdmin()
     const { error } = await supabase
@@ -180,7 +253,7 @@ export async function createAsset(data: { asset_code: string; name: string; type
   }
 }
 
-export async function updateAsset(id: string, data: { asset_code?: string; name?: string; type?: string; department_id?: string | null; status?: string }) {
+export async function updateAsset(id: string, data: { asset_code?: string; name?: string; type?: string; department_id?: string | null; status?: string; specifications?: string }) {
   try {
     const supabase = await checkAdmin()
     const { error } = await supabase

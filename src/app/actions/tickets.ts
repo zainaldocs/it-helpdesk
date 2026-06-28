@@ -97,7 +97,7 @@ export async function getTicketById(id: string) {
       *,
       creator:profiles!tickets_created_by_fkey(full_name, email, department_id, department:departments(name)),
       assignee:profiles!tickets_assigned_to_fkey(full_name, email),
-      asset:assets(asset_code, name)
+      asset:assets(asset_code, name, specifications)
     `)
     .eq('id', id)
     .single()
