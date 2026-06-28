@@ -238,109 +238,111 @@ export default function UsersAdminPage() {
               <span className="text-sm font-medium">Memuat data pengguna...</span>
             </div>
           ) : filteredUsers.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider">
-                    <th className="px-6 py-4">Nama & Email</th>
-                    <th className="px-6 py-4">Peran (Role)</th>
-                    <th className="px-6 py-4">Departemen</th>
-                    <th className="px-6 py-4">Status Akun</th>
-                    <th className="px-6 py-4 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
-                  {currentUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-50/50 transition">
-                      <td className="px-6 py-4.5">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold">
-                            {u.full_name.charAt(0)}
-                          </div>
-                          <div>
-                            <span className="font-semibold text-slate-900 block">{u.full_name}</span>
-                            <span className="text-xs text-slate-400 font-medium font-mono">{u.email}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4.5">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${getRoleBadge(u.role)}`}>
-                          {getRoleLabel(u.role)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4.5 font-semibold text-slate-900">
-                        {u.department ? (
-                          <span className="flex items-center gap-1.5">
-                            <Briefcase className="h-3.5 w-3.5 text-slate-400" />
-                            {u.department.name}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 font-normal italic">Belum ditentukan</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4.5">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold capitalize ${getStatusBadge(u.account_status)}`}>
-                          {u.account_status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4.5 text-right">
-                        <div className="inline-flex gap-2">
-                          {u.account_status === 'pending' && (
-                            <button
-                              onClick={() => handleApprove(u.id)}
-                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/10 flex items-center gap-1 cursor-pointer transition whitespace-nowrap"
-                              title="Setujui Akun"
-                            >
-                              <Check className="h-3.5 w-3.5" />
-                              Approve
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleOpenEdit(u)}
-                            className="p-2 text-slate-500 hover:text-purple-600 hover:bg-purple-50 border border-transparent hover:border-purple-100 rounded-lg transition cursor-pointer"
-                            title="Edit User"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(u.id, u.full_name)}
-                            className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg transition cursor-pointer"
-                            title="Hapus User"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                      <th className="px-6 py-4">Nama & Email</th>
+                      <th className="px-6 py-4">Peran (Role)</th>
+                      <th className="px-6 py-4">Departemen</th>
+                      <th className="px-6 py-4">Status Akun</th>
+                      <th className="px-6 py-4 text-right">Aksi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200 text-xs">
-                <div className="text-slate-500 font-semibold">
-                  Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredUsers.length)} dari {filteredUsers.length} pengguna
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
-                  >
-                    Sebelumnya
-                  </button>
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
-                  >
-                    Selanjutnya
-                  </button>
-                </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-sm">
+                    {currentUsers.map((u) => (
+                      <tr key={u.id} className="hover:bg-slate-50/50 transition">
+                        <td className="px-6 py-4.5">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold">
+                              {u.full_name.charAt(0)}
+                            </div>
+                            <div>
+                              <span className="font-semibold text-slate-900 block">{u.full_name}</span>
+                              <span className="text-xs text-slate-400 font-medium font-mono">{u.email}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4.5">
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${getRoleBadge(u.role)}`}>
+                            {getRoleLabel(u.role)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4.5 font-semibold text-slate-900">
+                          {u.department ? (
+                            <span className="flex items-center gap-1.5">
+                              <Briefcase className="h-3.5 w-3.5 text-slate-400" />
+                              {u.department.name}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 font-normal italic">Belum ditentukan</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4.5">
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold capitalize ${getStatusBadge(u.account_status)}`}>
+                            {u.account_status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4.5 text-right">
+                          <div className="inline-flex gap-2">
+                            {u.account_status === 'pending' && (
+                              <button
+                                onClick={() => handleApprove(u.id)}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/10 flex items-center gap-1 cursor-pointer transition whitespace-nowrap"
+                                title="Setujui Akun"
+                              >
+                                <Check className="h-3.5 w-3.5" />
+                                Approve
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleOpenEdit(u)}
+                              className="p-2 text-slate-500 hover:text-purple-600 hover:bg-purple-50 border border-transparent hover:border-purple-100 rounded-lg transition cursor-pointer"
+                              title="Edit User"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(u.id, u.full_name)}
+                              className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg transition cursor-pointer"
+                              title="Hapus User"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            )}
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200 text-xs">
+                  <div className="text-slate-500 font-semibold">
+                    Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredUsers.length)} dari {filteredUsers.length} pengguna
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                    >
+                      Sebelumnya
+                    </button>
+                    <button
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl disabled:opacity-40 transition cursor-pointer"
+                    >
+                      Selanjutnya
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="p-16 text-center flex flex-col items-center justify-center gap-3">
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-slate-400">
