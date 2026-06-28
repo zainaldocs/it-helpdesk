@@ -17,6 +17,7 @@ export default function AssetsPage() {
   const [assetType, setAssetType] = useState('PC')
   const [selectedDeptId, setSelectedDeptId] = useState('')
   const [assetStatus, setAssetStatus] = useState('Active')
+  const [specifications, setSpecifications] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function AssetsPage() {
     setAssetType('PC')
     setSelectedDeptId(departments[0]?.id || '')
     setAssetStatus('Active')
+    setSpecifications('')
     setError('')
     setIsModalOpen(true)
   }
@@ -52,6 +54,7 @@ export default function AssetsPage() {
     setAssetType(asset.type)
     setSelectedDeptId(asset.department_id || '')
     setAssetStatus(asset.status)
+    setSpecifications(asset.specifications || '')
     setError('')
     setIsModalOpen(true)
   }
@@ -71,7 +74,8 @@ export default function AssetsPage() {
       name: assetName.trim(),
       type: assetType.trim(),
       department_id: selectedDeptId || null,
-      status: assetStatus
+      status: assetStatus,
+      specifications: specifications.trim() || null
     }
 
     const result = currentAsset 
@@ -127,7 +131,7 @@ export default function AssetsPage() {
           className="flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-sm font-bold shadow-md shadow-purple-600/15 cursor-pointer transition"
         >
           <PlusCircle className="h-4.5 w-4.5" />
-          Tambah Aset baru
+          Tambah Aset Baru
         </button>
       </div>
 
@@ -144,7 +148,7 @@ export default function AssetsPage() {
               <thead>
                 <tr className="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider">
                   <th className="px-6 py-4">Kode Aset</th>
-                  <th className="px-6 py-4">Nama Perangkat</th>
+                  <th className="px-6 py-4">Nama Perangkat & Spesifikasi</th>
                   <th className="px-6 py-4">Tipe</th>
                   <th className="px-6 py-4">Departemen</th>
                   <th className="px-6 py-4">Status</th>
@@ -155,11 +159,20 @@ export default function AssetsPage() {
                 {assets.map((asset) => (
                   <tr key={asset.id} className="hover:bg-slate-50/50 transition">
                     <td className="px-6 py-4 font-mono font-bold text-slate-600">{asset.asset_code}</td>
-                    <td className="px-6 py-4 font-semibold text-slate-900 flex items-center gap-3">
-                      <div className="p-2 bg-purple-50 border border-purple-100 rounded-lg text-purple-600">
-                        <Laptop className="h-4 w-4" />
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-50 border border-purple-100 rounded-lg text-purple-600 flex-shrink-0">
+                          <Laptop className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-semibold text-slate-900 block truncate max-w-xs">{asset.name}</span>
+                          {asset.specifications && (
+                            <span className="text-[10px] text-slate-400 font-medium block truncate max-w-xs" title={asset.specifications}>
+                              {asset.specifications}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      {asset.name}
                     </td>
                     <td className="px-6 py-4 text-slate-600 font-medium">{asset.type}</td>
                     <td className="px-6 py-4 text-slate-900 font-semibold">
@@ -236,11 +249,12 @@ export default function AssetsPage() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  <label htmlFor="assetCodeInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                     Kode Aset
                   </label>
                   <input
                     type="text"
+                    id="assetCodeInput"
                     value={assetCode}
                     onChange={(e) => setAssetCode(e.target.value)}
                     placeholder="PC-FIN-001"
@@ -249,10 +263,11 @@ export default function AssetsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  <label htmlFor="assetTypeSelect" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                     Tipe Perangkat
                   </label>
                   <select
+                    id="assetTypeSelect"
                     value={assetType}
                     onChange={(e) => setAssetType(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
@@ -268,11 +283,12 @@ export default function AssetsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                <label htmlFor="assetNameInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                   Nama Perangkat
                 </label>
                 <input
                   type="text"
+                  id="assetNameInput"
                   value={assetName}
                   onChange={(e) => setAssetName(e.target.value)}
                   placeholder="Contoh: ThinkCentre M70, MacBook Air"
@@ -282,10 +298,25 @@ export default function AssetsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                <label htmlFor="specificationsInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Spesifikasi Teknis
+                </label>
+                <textarea
+                  id="specificationsInput"
+                  value={specifications}
+                  onChange={(e) => setSpecifications(e.target.value)}
+                  placeholder="Contoh: Intel i5, RAM 16GB, SSD 512GB"
+                  rows={2}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition resize-none font-medium"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="departmentSelect" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                   Departemen
                 </label>
                 <select
+                  id="departmentSelect"
                   value={selectedDeptId}
                   onChange={(e) => setSelectedDeptId(e.target.value)}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"

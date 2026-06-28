@@ -1,8 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getUsers, approveUserRegistration, updateUserProfile, getDepartments } from '@/app/actions/admin'
-import { User, Shield, Check, Edit2, Loader2, X, Briefcase, Filter } from 'lucide-react'
+import { 
+  getUsers, 
+  approveUserRegistration, 
+  updateUserProfile, 
+  getDepartments,
+  createUser,
+  deleteUser
+} from '@/app/actions/admin'
+import { User, Shield, Check, Edit2, Trash2, Loader2, X, Briefcase, Filter, PlusCircle, Key } from 'lucide-react'
 
 export default function UsersAdminPage() {
   const [users, setUsers] = useState<any[]>([])
@@ -12,11 +19,16 @@ export default function UsersAdminPage() {
   
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
   const [currentUser, setCurrentUser] = useState<any | null>(null)
   
-  const [selectedRole, setSelectedRole] = useState('')
+  // Form fields
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [selectedRole, setSelectedRole] = useState('end_user')
   const [selectedDeptId, setSelectedDeptId] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState('active')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -43,8 +55,25 @@ export default function UsersAdminPage() {
     fetchData()
   }
 
+  const handleOpenCreate = () => {
+    setModalMode('create')
+    setCurrentUser(null)
+    setFullName('')
+    setEmail('')
+    setPassword('')
+    setSelectedRole('end_user')
+    setSelectedDeptId('')
+    setSelectedStatus('active')
+    setError('')
+    setIsModalOpen(true)
+  }
+
   const handleOpenEdit = (user: any) => {
+    setModalMode('edit')
     setCurrentUser(user)
+    setFullName(user.full_name)
+    setEmail(user.email)
+    setPassword('') // Not needed for edit
     setSelectedRole(user.role)
     setSelectedDeptId(user.department_id || '')
     setSelectedStatus(user.account_status)
@@ -52,16 +81,32 @@ export default function UsersAdminPage() {
     setIsModalOpen(true)
   }
 
-  const handleSubmitEdit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')
 
-    const result = await updateUserProfile(currentUser.id, {
-      role: selectedRole,
-      department_id: selectedDeptId || null,
-      account_status: selectedStatus
-    })
+    let result;
+    if (modalMode === 'create') {
+      if (!fullName.trim() || !email.trim() || !password.trim()) {
+        setError('Semua kolom wajib diisi')
+        setIsSubmitting(false)
+        return
+      }
+      result = await createUser({
+        fullName: fullName.trim(),
+        email: email.trim(),
+        password: password,
+        role: selectedRole,
+        department_id: selectedDeptId || null
+      })
+    } else {
+      result = await updateUserProfile(currentUser.id, {
+        role: selectedRole,
+        department_id: selectedDeptId || null,
+        account_status: selectedStatus
+      })
+    }
 
     setIsSubmitting(false)
 
@@ -71,6 +116,19 @@ export default function UsersAdminPage() {
       setIsModalOpen(false)
       fetchData()
     }
+  }
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus user "${name}"? Tindakan ini akan menghapus akun autentikasi dan seluruh profil user.`)) {
+      return
+    }
+
+    setIsLoading(true)
+    const result = await deleteUser(id)
+    if (result.error) {
+      alert('Gagal menghapus user: ' + result.error)
+    }
+    fetchData()
   }
 
   const filteredUsers = users.filter((u) => {
@@ -119,8 +177,15 @@ export default function UsersAdminPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Kelola Pengguna (Users)</h1>
-          <p className="text-sm text-slate-500 font-medium">Setujui registrasi karyawan baru dan atur penempatan departemen serta hak akses.</p>
+          <p className="text-sm text-slate-500 font-medium">Setujui registrasi karyawan baru, tambahkan user, atau hapus dan atur departemen serta hak akses.</p>
         </div>
+        <button
+          onClick={handleOpenCreate}
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-sm font-bold shadow-md shadow-purple-600/15 cursor-pointer transition"
+        >
+          <PlusCircle className="h-4.5 w-4.5" />
+          Tambah User Baru
+        </button>
       </div>
 
       {/* Filter Tabs & Table */}
@@ -209,7 +274,7 @@ export default function UsersAdminPage() {
                           {u.account_status === 'pending' && (
                             <button
                               onClick={() => handleApprove(u.id)}
-                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/10 flex items-center gap-1 cursor-pointer transition"
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/10 flex items-center gap-1 cursor-pointer transition whitespace-nowrap"
                               title="Setujui Akun"
                             >
                               <Check className="h-3.5 w-3.5" />
@@ -222,6 +287,13 @@ export default function UsersAdminPage() {
                             title="Edit User"
                           >
                             <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(u.id, u.full_name)}
+                            className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg transition cursor-pointer"
+                            title="Hapus User"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </td>
@@ -244,7 +316,7 @@ export default function UsersAdminPage() {
         </div>
       </div>
 
-      {/* Edit User Modal */}
+      {/* Create / Edit User Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div 
@@ -256,7 +328,7 @@ export default function UsersAdminPage() {
             <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="font-bold text-slate-900 flex items-center gap-2">
                 <Shield className="h-4.5 w-4.5 text-purple-600" />
-                Atur Akses User
+                {modalMode === 'create' ? 'Tambah User Baru' : 'Atur Akses User'}
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -266,22 +338,77 @@ export default function UsersAdminPage() {
               </button>
             </div>
             
-            <form onSubmit={handleSubmitEdit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 text-xs text-red-600 rounded-xl font-medium">
                   {error}
                 </div>
               )}
 
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold">
-                  {currentUser?.full_name.charAt(0)}
+              {modalMode === 'edit' ? (
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold">
+                    {fullName.charAt(0)}
+                  </div>
+                  <div>
+                    <span className="font-bold text-slate-900 text-sm block">{fullName}</span>
+                    <span className="text-xs text-slate-400 font-semibold font-mono">{email}</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-bold text-slate-900 text-sm block">{currentUser?.full_name}</span>
-                  <span className="text-xs text-slate-400 font-semibold font-mono">{currentUser?.email}</span>
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div>
+                    <label htmlFor="fullNameInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                      Nama Lengkap
+                    </label>
+                    <input
+                      type="text"
+                      id="fullNameInput"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="John Doe"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="emailInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                      Email Perusahaan
+                    </label>
+                    <input
+                      type="email"
+                      id="emailInput"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="john.doe@company.com"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="passwordInput" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                      Kata Sandi (Password)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                        <Key className="h-4 w-4" />
+                      </span>
+                      <input
+                        type="password"
+                        id="passwordInput"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Min. 6 karakter"
+                        minLength={6}
+                        className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition"
+                        required
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
               
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
@@ -315,35 +442,37 @@ export default function UsersAdminPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                  Status Akun
-                </label>
-                <div className="flex gap-2">
-                  {[
-                    { id: 'active', label: 'Aktif' },
-                    { id: 'pending', label: 'Pending' },
-                    { id: 'suspended', label: 'Suspend' }
-                  ].map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => setSelectedStatus(s.id)}
-                      className={`flex-1 py-2 px-3 border rounded-xl text-xs font-bold transition cursor-pointer ${
-                        selectedStatus === s.id
-                          ? s.id === 'active'
-                            ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
-                            : s.id === 'pending'
-                            ? 'bg-amber-50 border-amber-500 text-amber-700'
-                            : 'bg-rose-50 border-rose-500 text-rose-700'
-                          : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
-                      }`}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
+              {modalMode === 'edit' && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    Status Akun
+                  </label>
+                  <div className="flex gap-2">
+                    {[
+                      { id: 'active', label: 'Aktif' },
+                      { id: 'pending', label: 'Pending' },
+                      { id: 'suspended', label: 'Suspend' }
+                    ].map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setSelectedStatus(s.id)}
+                        className={`flex-1 py-2 px-3 border rounded-xl text-xs font-bold transition cursor-pointer ${
+                          selectedStatus === s.id
+                            ? s.id === 'active'
+                              ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
+                              : s.id === 'pending'
+                              ? 'bg-amber-50 border-amber-500 text-amber-700'
+                              : 'bg-rose-50 border-rose-500 text-rose-700'
+                            : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
@@ -361,7 +490,7 @@ export default function UsersAdminPage() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-3 w-3 animate-spin" />
-                      Menyimpan...
+                      Memproses...
                     </>
                   ) : (
                     'Simpan'

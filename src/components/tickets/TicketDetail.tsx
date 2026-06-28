@@ -316,6 +316,16 @@ export default function TicketDetail({
             </div>
           </div>
 
+          {/* Asset Specifications */}
+          {ticket.asset?.specifications && (
+            <div className="space-y-2">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Spesifikasi Perangkat</h3>
+              <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold leading-relaxed whitespace-pre-wrap font-mono shadow-inner">
+                {ticket.asset.specifications}
+              </div>
+            </div>
+          )}
+
           {/* Attachment */}
           {ticket.attachment_url && (
             <div className="space-y-2">
