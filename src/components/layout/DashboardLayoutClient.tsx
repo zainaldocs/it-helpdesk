@@ -6,7 +6,7 @@ import Sidebar from '@/components/layout/Sidebar'
 import Navbar from '@/components/layout/Navbar'
 
 interface DashboardLayoutClientProps {
-  userRole: 'admin' | 'technician' | 'end_user'
+  userRole: 'admin' | 'technician' | 'manager' | 'end_user'
   userFullName: string
   userEmail: string
   children: React.ReactNode

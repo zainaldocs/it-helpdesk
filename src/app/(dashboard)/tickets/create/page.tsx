@@ -1,7 +1,7 @@
 'use client'
 
-import { useActionState, startTransition, useState } from 'react'
-import { createTicket, type CreateTicketState } from '@/app/actions/tickets'
+import { useActionState, startTransition, useState, useEffect } from 'react'
+import { createTicket, getMyDepartmentAssets, type CreateTicketState } from '@/app/actions/tickets'
 import Link from 'next/link'
 import { 
   Terminal, 
@@ -10,7 +10,8 @@ import {
   FileText, 
   HelpCircle,
   AlertCircle,
-  Paperclip
+  Paperclip,
+  Laptop
 } from 'lucide-react'
 
 const initialState: CreateTicketState = {}
@@ -18,6 +19,17 @@ const initialState: CreateTicketState = {}
 export default function CreateTicketPage() {
   const [state, formAction, isPending] = useActionState(createTicket, initialState)
   const [attachmentUrl, setAttachmentUrl] = useState('')
+  const [assets, setAssets] = useState<any[]>([])
+  const [isLoadingAssets, setIsLoadingAssets] = useState(true)
+
+  useEffect(() => {
+    async function fetchAssets() {
+      const data = await getMyDepartmentAssets()
+      setAssets(data)
+      setIsLoadingAssets(false)
+    }
+    fetchAssets()
+  }, [])
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -92,6 +104,40 @@ export default function CreateTicketPage() {
               placeholder="Contoh: Printer lantai 2 tidak bisa mencetak dokumen"
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition duration-200 shadow-inner"
             />
+          </div>
+
+          {/* Asset Selection */}
+          <div>
+            <label htmlFor="assetId" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+              Pilih Aset Bermasalah
+            </label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                <Laptop className="h-4.5 w-4.5" />
+              </span>
+              <select
+                name="assetId"
+                id="assetId"
+                required
+                defaultValue=""
+                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition duration-200 cursor-pointer shadow-inner font-medium"
+              >
+                <option value="" disabled>-- Pilih Aset Perangkat --</option>
+                {assets.map((asset) => (
+                  <option key={asset.id} value={asset.id}>
+                    {asset.asset_code} - {asset.name} ({asset.type})
+                  </option>
+                ))}
+                {assets.length === 0 && !isLoadingAssets && (
+                  <option value="">Umum / Tidak Ada Aset</option>
+                )}
+              </select>
+            </div>
+            {assets.length === 0 && !isLoadingAssets && (
+              <p className="text-[10px] text-amber-600 mt-1.5 font-medium">
+                Catatan: Akun Anda mungkin belum di-assign ke departemen atau departemen Anda belum memiliki aset terdaftar.
+              </p>
+            )}
           </div>
 
           {/* Grid Category & Urgency */}

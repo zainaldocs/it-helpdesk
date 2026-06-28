@@ -13,6 +13,14 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
+  if (user.profile.account_status === 'pending') {
+    redirect('/waiting-approval')
+  }
+
+  if (user.profile.account_status === 'suspended') {
+    redirect('/suspended')
+  }
+
   return (
     <DashboardLayoutClient 
       userRole={user.profile.role} 
