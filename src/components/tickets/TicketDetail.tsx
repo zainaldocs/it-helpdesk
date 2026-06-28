@@ -19,7 +19,8 @@ import {
   Laptop,
   FileCheck
 } from 'lucide-react'
-import { updateTicketStatus, assignTicket, addTicketNote } from '@/app/actions/tickets'
+import { updateTicketStatus, assignTicket } from '@/app/actions/tickets'
+import { createNote } from '@/app/actions/notes'
 
 interface Note {
   id: string
@@ -34,18 +35,14 @@ interface Note {
 }
 
 interface TicketDetailProps {
-  initialTicket: any
+  ticket: any
   initialNotes: Note[]
-  currentUser: {
-    id: string
-    role: string
-    email: string
-  }
+  currentUser: any
   technicians: { id: string; full_name: string; role: string }[]
 }
 
 export default function TicketDetail({ 
-  initialTicket, 
+  ticket: initialTicket, 
   initialNotes, 
   currentUser,
   technicians
@@ -63,7 +60,7 @@ export default function TicketDetail({
   const [isAssigning, startAssignTransition] = useTransition()
   
   const ticketStatus = ticket.status
-  const isStaff = currentUser.role === 'admin' || currentUser.role === 'technician'
+  const isStaff = currentUser?.profile?.role === 'admin' || currentUser?.profile?.role === 'technician'
   const [assignedTo, setAssignedTo] = useState(ticket.assigned_to || '')
 
   const handleStatusChange = async (newStatus: 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled') => {
@@ -75,10 +72,6 @@ export default function TicketDetail({
         alert('Gagal memperbarui status: ' + result.error)
       } else {
         setTicket(prev => ({ ...prev, status: newStatus }))
-        // Refresh notes list because status update may append system log notes
-        if (result.notes) {
-          setNotes(result.notes as any[])
-        }
       }
     })
   }
@@ -91,10 +84,6 @@ export default function TicketDetail({
       } else {
         setAssignedTo(techId)
         setTicket(prev => ({ ...prev, assigned_to: techId || null }))
-        // Refresh notes
-        if (result.notes) {
-          setNotes(result.notes as any[])
-        }
       }
     })
   }
@@ -104,17 +93,26 @@ export default function TicketDetail({
     if (!noteContent.trim() || isNoteSubmitting) return
 
     setIsNoteSubmitting(true)
-    const result = await addTicketNote(ticket.id, noteContent.trim(), isInternalNote)
+    const result = await createNote(ticket.id, noteContent.trim(), isInternalNote)
     setIsNoteSubmitting(false)
 
     if (result.error) {
       alert('Gagal menambah catatan: ' + result.error)
     } else {
+      const newNote: Note = {
+        id: Math.random().toString(),
+        content: noteContent.trim(),
+        is_internal: isInternalNote,
+        created_at: new Date().toISOString(),
+        user: {
+          full_name: currentUser.profile?.full_name || 'User',
+          email: currentUser.email,
+          role: currentUser.profile?.role || 'end_user'
+        }
+      }
+      setNotes(prev => [...prev, newNote])
       setNoteContent('')
       setIsInternalNote(false)
-      if (result.notes) {
-        setNotes(result.notes as any[])
-      }
     }
   }
 
