@@ -71,7 +71,7 @@ export default function TicketDetail({
       if (result.error) {
         alert('Gagal memperbarui status: ' + result.error)
       } else {
-        setTicket(prev => ({ ...prev, status: newStatus }))
+        setTicket((prev: any) => ({ ...prev, status: newStatus }))
       }
     })
   }
@@ -83,7 +83,7 @@ export default function TicketDetail({
         alert('Gagal menugaskan tiket: ' + result.error)
       } else {
         setAssignedTo(techId)
-        setTicket(prev => ({ ...prev, assigned_to: techId || null }))
+        setTicket((prev: any) => ({ ...prev, assigned_to: techId || null }))
       }
     })
   }
